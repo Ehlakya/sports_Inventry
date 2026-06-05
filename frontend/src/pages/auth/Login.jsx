@@ -39,7 +39,6 @@ const Login = () => {
       else if (user.role === 'SUPPLIER') navigate('/supplier');
       else navigate('/dashboard');
     } catch (error) {
-      console.error('Login error:', error);
       const errMsg = error.response?.data?.error || 'Invalid email or password.';
       dispatch(loginFailure(errMsg));
       showToast(errMsg, 'error');
