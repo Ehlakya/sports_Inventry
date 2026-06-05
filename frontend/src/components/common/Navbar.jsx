@@ -71,7 +71,7 @@ const Navbar = ({ toggleMobileSidebar }) => {
             )}
             <Link to="/" className="flex items-center gap-2">
               <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-900 to-orange-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-orange-400">
-                ANTIGRAVITY<span className="text-slate-800 dark:text-slate-200">SPORTS</span>
+                FULL<span className="text-slate-800 dark:text-slate-200">SPORTS</span>
               </span>
             </Link>
           </div>
