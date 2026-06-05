@@ -7,6 +7,7 @@ const productRoutes = require('./product.routes');
 const orderRoutes = require('./order.routes');
 const dashboardRoutes = require('./dashboard.routes');
 const inventoryRoutes = require('./inventory.routes');
+const userRoutes = require('./user.routes');
 
 // Prefix sub-routers
 router.use('/auth', authRoutes);
@@ -15,5 +16,6 @@ router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/inventory', inventoryRoutes);
+router.use('/users', userRoutes);
 
 module.exports = router;

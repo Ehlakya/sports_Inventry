@@ -89,7 +89,7 @@ const Login = () => {
                 {...register('email', { 
                   required: 'Email or Username is required'
                 })}
-                placeholder="yourname@sports.com or adminR"
+                placeholder="Username or Email"
                 className="w-full pl-10 pr-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-500"
               />
               <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
