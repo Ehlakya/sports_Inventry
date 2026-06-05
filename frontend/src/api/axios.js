@@ -45,6 +45,12 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Never intercept auth endpoints — avoids infinite retry loops
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/');
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
+    }
+
     // Check if error is 401 and it's not a retry already
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       // If we are already refreshing, queue the request

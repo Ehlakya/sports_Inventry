@@ -39,9 +39,13 @@ const Login = () => {
   const dispatch = useDispatch();
   const { showToast } = useToast();
   const { isAuthenticated, role } = useSelector((state) => state.auth);
-
   const [loading, setLoading] = useState(false);
   const [activeDemo, setActiveDemo] = useState(null);
+
+  // IMPORTANT: useForm must be called before any conditional returns (Rules of Hooks)
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+    defaultValues: { email: '', password: '' }
+  });
 
   // Redirect already-authenticated users to their dashboard
   if (isAuthenticated) {
@@ -49,10 +53,6 @@ const Login = () => {
     if (role === 'SUPPLIER') return <Navigate to="/supplier" replace />;
     return <Navigate to="/" replace />;
   }
-
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm({
-    defaultValues: { email: '', password: '' }
-  });
 
   const fillDemo = (account) => {
     setValue('email', account.email);
