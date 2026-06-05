@@ -93,7 +93,7 @@ function App() {
               </Route>
 
               {/* Catch-all */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </Suspense>
         </BrowserRouter>

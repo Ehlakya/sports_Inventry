@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { Mail, Lock, LogIn, Loader2 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
@@ -11,8 +11,16 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { showToast } = useToast();
-  
+  const { isAuthenticated, role } = useSelector((state) => state.auth);
+
   const [loading, setLoading] = useState(false);
+
+  // Redirect already-authenticated users to their dashboard
+  if (isAuthenticated) {
+    if (role === 'ADMIN') return <Navigate to="/admin" replace />;
+    if (role === 'SUPPLIER') return <Navigate to="/supplier" replace />;
+    return <Navigate to="/" replace />;
+  }
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
@@ -64,7 +72,7 @@ const Login = () => {
         {/* Logo / Header */}
         <div className="text-center space-y-2 mb-8">
           <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent uppercase tracking-wider">
-            Antigravity Sports
+            FULL<span className="text-slate-800 dark:text-slate-200">SPORTS</span>
           </h1>
           <p className="text-xs text-slate-400">Inventory & E-Commerce Console Login</p>
         </div>

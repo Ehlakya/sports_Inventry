@@ -1,8 +1,16 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Navbar from '../components/common/Navbar';
 
 const CustomerLayout = () => {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  // Route Guarding: Protect all customer routes
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Customer Header */}

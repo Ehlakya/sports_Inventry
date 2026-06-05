@@ -67,8 +67,7 @@ apiClient.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
         isRefreshing = false;
-        // Redirect to login or dispatch logout
-        logoutUser();
+        // No session exists — just reject silently, don't force a redirect
         return Promise.reject(error);
       }
 
