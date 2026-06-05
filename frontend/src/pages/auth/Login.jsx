@@ -82,15 +82,14 @@ const Login = () => {
           
           {/* Email */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Email Address</label>
+            <label className="text-xs font-semibold text-slate-300">Email or Username</label>
             <div className="relative">
               <input
-                type="email"
+                type="text"
                 {...register('email', { 
-                  required: 'Email is required',
-                  pattern: { value: /^\S+@\S+$/i, message: 'Invalid email format' }
+                  required: 'Email or Username is required'
                 })}
-                placeholder="yourname@sports.com"
+                placeholder="yourname@sports.com or adminR"
                 className="w-full pl-10 pr-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-500"
               />
               <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />

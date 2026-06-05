@@ -74,6 +74,13 @@ const login = async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
+    // Enforce that only the Admin account with the username adminR and password admin123 can access the Admin role/dashboard.
+    if (user.role === 'ADMIN') {
+      if (email !== 'adminR' || password !== 'admin123') {
+        return res.status(401).json({ error: 'Invalid email or password.' });
+      }
+    }
+
     // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);

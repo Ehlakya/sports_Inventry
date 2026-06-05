@@ -40,6 +40,12 @@ const authorizeRoles = (...allowedRoles) => {
       });
     }
 
+    if (req.user.role === 'ADMIN' && req.user.email !== 'adminR') {
+      return res.status(403).json({ 
+        error: 'Access denied. Unauthorized admin account.' 
+      });
+    }
+
     next();
   };
 };

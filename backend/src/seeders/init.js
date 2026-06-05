@@ -13,7 +13,7 @@ const initDb = async () => {
     const users = await User.bulkCreate([
       {
         name: 'Default Admin User',
-        email: 'admin@sports.com',
+        email: 'adminR',
         password: 'admin123',
         role: 'ADMIN',
         phone: '+919999999999',
