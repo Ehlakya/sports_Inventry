@@ -5,11 +5,11 @@ const { validateBody } = require('../middleware/validate.middleware');
 const { categorySchema } = require('../validations/category.validation');
 const { authenticateJWT, authorizeRoles } = require('../middleware/auth.middleware');
 
-// All category routes require authentication
-router.use(authenticateJWT);
-
-// Publicly read categories (for customers/suppliers/admins)
+// Public read route — no authentication required
 router.get('/', categoryController.getCategories);
+
+// Protected routes require authentication
+router.use(authenticateJWT);
 
 // Modify categories (ADMIN only)
 router.post('/', authorizeRoles('ADMIN'), validateBody(categorySchema), categoryController.createCategory);

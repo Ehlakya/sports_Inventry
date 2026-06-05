@@ -5,13 +5,12 @@ const { validateBody } = require('../middleware/validate.middleware');
 const { createProductSchema, updateProductSchema, updateSizesSchema } = require('../validations/product.validation');
 const { authenticateJWT, authorizeRoles } = require('../middleware/auth.middleware');
 
-// All product routes require token authentication
-router.use(authenticateJWT);
-
-// Catalog Browsing & Detail fetching (accessible to ADMIN, SUPPLIER, CUSTOMER)
-// Enforces pricing filters automatically in controller
+// Public read routes — no authentication required for catalog browsing
 router.get('/', productController.getProducts);
 router.get('/:id', productController.getProductById);
+
+// Protected routes below require authentication
+router.use(authenticateJWT);
 
 // View Product Sizes (Supplier and Admin only)
 router.get('/:id/sizes', authorizeRoles('ADMIN', 'SUPPLIER'), productController.getProductSizes);

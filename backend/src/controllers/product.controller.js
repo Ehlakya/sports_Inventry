@@ -160,8 +160,9 @@ const getProducts = async (req, res, next) => {
       order: [['id', 'ASC']]
     });
 
-    // Sanitize prices based on role
-    const sanitizedProducts = products.map(prod => sanitizeProductForRole(prod, req.user.role));
+    // Sanitize prices based on role (default to CUSTOMER for unauthenticated users)
+    const role = req.user ? req.user.role : 'CUSTOMER';
+    const sanitizedProducts = products.map(prod => sanitizeProductForRole(prod, role));
 
     res.status(200).json({
       products: sanitizedProducts
@@ -186,8 +187,10 @@ const getProductById = async (req, res, next) => {
       return res.status(404).json({ error: 'Product not found.' });
     }
 
+    // Default to CUSTOMER role pricing for unauthenticated visitors
+    const role = req.user ? req.user.role : 'CUSTOMER';
     res.status(200).json({
-      product: sanitizeProductForRole(product, req.user.role)
+      product: sanitizeProductForRole(product, role)
     });
   } catch (error) {
     next(error);
