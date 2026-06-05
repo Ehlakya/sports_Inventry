@@ -33,7 +33,7 @@ const AdminReports = () => {
   const [salesSummary, setSalesSummary] = useState(null);
 
   useEffect(() => {
-    api.get('/dashboard/sales-summary').then(r => setSalesSummary(r.data.data)).catch(() => {});
+    api.get('/dashboard').then(r => setSalesSummary(r.data.dashboard)).catch(() => {});
   }, []);
 
   const fmtK = (v) => `₹${(v / 1000).toFixed(0)}k`;

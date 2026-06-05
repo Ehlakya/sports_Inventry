@@ -73,8 +73,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await api.get('/dashboard/stats');
-        setStats(res.data.data);
+        const res = await api.get('/dashboard');
+        setStats(res.data.dashboard);
       } catch {
         // Use fallback demo data
         setStats({

@@ -29,7 +29,7 @@ const SupplierDashboard = () => {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    api.get('/dashboard/supplier-stats').then(r => setStats(r.data.data)).catch(() => {
+    api.get('/dashboard').then(r => setStats(r.data.dashboard)).catch(() => {
       setStats({ totalProducts: 24, pendingOrders: 3, completedOrders: 68, totalRevenue: '₹18,45,200' });
     });
   }, []);
