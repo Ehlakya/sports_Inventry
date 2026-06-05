@@ -54,12 +54,6 @@ const Login = () => {
     return <Navigate to="/" replace />;
   }
 
-  const fillDemo = (account) => {
-    setValue('email', account.email);
-    setValue('password', account.password);
-    setActiveDemo(account.role);
-  };
-
   const onSubmit = async (data) => {
     setLoading(true);
     dispatch(loginStart());
@@ -81,6 +75,14 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Clicking a demo card auto-fills AND instantly logs in
+  const fillDemo = async (account) => {
+    setValue('email', account.email);
+    setValue('password', account.password);
+    setActiveDemo(account.role);
+    await onSubmit({ email: account.email, password: account.password });
   };
 
   return (
