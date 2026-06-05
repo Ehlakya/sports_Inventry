@@ -4,11 +4,19 @@ import { useSelector } from 'react-redux';
 import Navbar from '../components/common/Navbar';
 
 const CustomerLayout = () => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, role } = useSelector((state) => state.auth);
 
   // Route Guarding: Protect all customer routes
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Redirect Admin and Supplier to their respective dashboards
+  if (role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
+  if (role === 'SUPPLIER') {
+    return <Navigate to="/supplier" replace />;
   }
 
   return (

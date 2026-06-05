@@ -1,26 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Read initial state from localStorage if it exists
-const initialToken = localStorage.getItem('accessToken') || null;
-const initialRefreshToken = localStorage.getItem('refreshToken') || null;
-const initialRole = localStorage.getItem('userRole') || null;
-let initialUser = null;
-
-try {
-  const userStr = localStorage.getItem('user');
-  if (userStr) {
-    initialUser = JSON.parse(userStr);
-  }
-} catch (e) {
-  console.error('Error parsing user from localStorage:', e);
-}
+// Clear previous session on application startup to force login first
+localStorage.removeItem('accessToken');
+localStorage.removeItem('refreshToken');
+localStorage.removeItem('userRole');
+localStorage.removeItem('user');
 
 const initialState = {
-  user: initialUser,
-  accessToken: initialToken,
-  refreshToken: initialRefreshToken,
-  role: initialRole,
-  isAuthenticated: !!initialToken,
+  user: null,
+  accessToken: null,
+  refreshToken: null,
+  role: null,
+  isAuthenticated: false,
   loading: false,
   error: null
 };
