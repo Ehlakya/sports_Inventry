@@ -54,6 +54,7 @@ const createSupplier = async (req, res, next) => {
       role: 'SUPPLIER',
       phone: phone || null,
       address: address || null,
+      createdByAdmin: true
     });
 
     res.status(201).json({

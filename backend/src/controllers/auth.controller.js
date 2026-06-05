@@ -29,14 +29,15 @@ const register = async (req, res, next) => {
       return res.status(400).json({ error: 'Email already registered.' });
     }
 
-    // Create user
+    // Create user - public registration must only create CUSTOMER accounts
     const newUser = await User.create({
       name,
       email,
       password, // hashed automatically by model hooks
-      role,
+      role: 'CUSTOMER',
       phone,
-      address
+      address,
+      createdByAdmin: false
     });
 
     // Generate tokens
@@ -78,6 +79,13 @@ const login = async (req, res, next) => {
     if (user.role === 'ADMIN') {
       if (email !== 'adminR' || password !== 'admin123') {
         return res.status(401).json({ error: 'Invalid email or password.' });
+      }
+    }
+
+    // Enforce that only supplier accounts created by the Admin can log in/access the supplier portal.
+    if (user.role === 'SUPPLIER') {
+      if (!user.createdByAdmin) {
+        return res.status(401).json({ error: 'Access denied. Supplier account not authorized or not created by Admin.' });
       }
     }
 

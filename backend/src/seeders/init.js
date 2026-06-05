@@ -17,7 +17,8 @@ const initDb = async () => {
         password: 'admin123',
         role: 'ADMIN',
         phone: '+919999999999',
-        address: '123 Admin Plaza, New Delhi'
+        address: '123 Admin Plaza, New Delhi',
+        createdByAdmin: true
       },
       {
         name: 'Prime Sports Supplier Ltd',
@@ -25,7 +26,8 @@ const initDb = async () => {
         password: 'supplier123',
         role: 'SUPPLIER',
         phone: '+918888888888',
-        address: '456 Warehousing Hub, Mumbai'
+        address: '456 Warehousing Hub, Mumbai',
+        createdByAdmin: true
       },
       {
         name: 'Active Customer John',
@@ -33,7 +35,8 @@ const initDb = async () => {
         password: 'customer123',
         role: 'CUSTOMER',
         phone: '+917777777777',
-        address: '789 Residential Way, Bangalore'
+        address: '789 Residential Way, Bangalore',
+        createdByAdmin: false
       }
     ], { validate: true, individualHooks: true }); // individualHooks: true triggers the bcrypt hashing!
 
