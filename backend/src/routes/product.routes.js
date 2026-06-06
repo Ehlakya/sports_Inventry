@@ -6,6 +6,7 @@ const { createProductSchema, updateProductSchema, updateSizesSchema } = require(
 const { authenticateJWT, authorizeRoles, authenticateOptional } = require('../middleware/auth.middleware');
 
 // Public read routes — optional authentication for role-based pricing
+router.get('/sizes', authenticateOptional, productController.getAllUniqueSizes);
 router.get('/', authenticateOptional, productController.getProducts);
 router.get('/:id', authenticateOptional, productController.getProductById);
 

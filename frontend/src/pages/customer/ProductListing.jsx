@@ -20,20 +20,35 @@ const ProductListing = () => {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('categoryId') || '');
   const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || '');
-  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedSizes, setSelectedSizes] = useState([]);
   const [maxPrice, setMaxPrice] = useState(20000);
 
   // Options lists
   const brands = ['Nike', 'Adidas', 'Puma', 'Kookaburra', 'Wilson', 'Decathlon', 'Yonex', 'Under Armour', 'Reebok'];
   
-  const getSizesForCategory = (catId) => {
-    if (!catId) return ['S', 'M', 'L', 'XL', 'XXL', '5', '6', '7', '8', '9', '10'];
-    const cat = categories.find(c => c.id.toString() === catId);
-    if (cat?.categoryName === 'Apparel') return ['S', 'M', 'L', 'XL', 'XXL'];
-    if (cat?.categoryName === 'Footwear') return ['5', '6', '7', '8', '9', '10'];
-    return [];
-  };
-  const sizes = getSizesForCategory(selectedCategory);
+  const [sizes, setSizes] = useState([]);
+
+  // Fetch unique sizes dynamically based on category
+  useEffect(() => {
+    const fetchSizes = async () => {
+      try {
+        const queryParams = new URLSearchParams();
+        if (selectedCategory) {
+          queryParams.append('categoryId', selectedCategory);
+        }
+        const res = await apiClient.get(`/products/sizes?${queryParams.toString()}`);
+        setSizes(res.data.sizes);
+      } catch (err) {
+        console.error('Error fetching sizes:', err);
+      }
+    };
+    fetchSizes();
+  }, [selectedCategory]);
+
+  // Clear selected sizes filter when category changes
+  useEffect(() => {
+    setSelectedSizes([]);
+  }, [selectedCategory]);
 
   // Sync state with URL params
   useEffect(() => {
@@ -63,18 +78,13 @@ const ProductListing = () => {
       if (search) queryParams.append('search', search);
       if (selectedCategory) queryParams.append('categoryId', selectedCategory);
       if (selectedBrand) queryParams.append('brand', selectedBrand);
+      if (selectedSizes.length > 0) queryParams.append('size', selectedSizes.join(','));
 
       const response = await apiClient.get(`/products?${queryParams.toString()}`);
       
-      // Client-side sub-filtering for size and price
+      // Client-side sub-filtering for price
       let filtered = response.data.products;
       
-      if (selectedSize) {
-        filtered = filtered.filter(prod => 
-          prod.sizes && prod.sizes.some(s => s.size === selectedSize && s.stock > 0)
-        );
-      }
-
       if (maxPrice) {
         filtered = filtered.filter(prod => parseFloat(prod.customerPrice) <= maxPrice);
       }
@@ -90,13 +100,13 @@ const ProductListing = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [search, selectedCategory, selectedBrand, selectedSize, maxPrice]);
+  }, [search, selectedCategory, selectedBrand, selectedSizes, maxPrice]);
 
   const handleQuickAdd = (product) => {
     let targetSize = { size: 'N/A', stock: product.availableQuantity };
 
     if (product.category?.categoryName !== 'Equipment' && product.sizes?.length > 0) {
-      targetSize = product.sizes.find(s => s.size === selectedSize && s.stock > 0);
+      targetSize = product.sizes.find(s => selectedSizes.includes(s.size) && s.stock > 0);
       if (!targetSize) {
         targetSize = product.sizes.find(s => s.stock > 0) || product.sizes[0];
       }
@@ -124,7 +134,7 @@ const ProductListing = () => {
     setSearch('');
     setSelectedCategory('');
     setSelectedBrand('');
-    setSelectedSize('');
+    setSelectedSizes([]);
     setMaxPrice(20000);
     setSearchParams({});
   };
@@ -211,16 +221,32 @@ const ProductListing = () => {
           {sizes.length > 0 && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Size Filter</label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {sizes.map((sz) => (
-                  <button
-                    key={sz}
-                    onClick={() => setSelectedSize(selectedSize === sz ? '' : sz)}
-                    className={`px-2 py-1.5 text-xs border rounded-lg transition-all text-center truncate ${selectedSize === sz ? 'bg-orange-500 text-white border-orange-500 font-semibold' : 'border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900'}`}
-                  >
-                    {sz}
-                  </button>
-                ))}
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {sizes.map((sz) => {
+                  const isChecked = selectedSizes.includes(sz);
+                  return (
+                    <label 
+                      key={sz} 
+                      className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {
+                          if (isChecked) {
+                            setSelectedSizes(selectedSizes.filter(s => s !== sz));
+                          } else {
+                            setSelectedSizes([...selectedSizes, sz]);
+                          }
+                        }}
+                        className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-4 w-4 cursor-pointer"
+                      />
+                      <span className={`text-slate-700 dark:text-slate-300 ${isChecked ? 'font-semibold text-orange-500' : ''}`}>
+                        {sz}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}

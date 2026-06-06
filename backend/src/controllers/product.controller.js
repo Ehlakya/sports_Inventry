@@ -129,7 +129,7 @@ const deleteProduct = async (req, res, next) => {
 
 const getProducts = async (req, res, next) => {
   try {
-    const { search, categoryId, brand } = req.query;
+    const { search, categoryId, brand, size } = req.query;
     const where = {};
 
     // Filter by Category
@@ -140,6 +140,23 @@ const getProducts = async (req, res, next) => {
     // Filter by Brand
     if (brand) {
       where.brand = brand;
+    }
+
+    // Filter by Size (dynamically from database)
+    if (size) {
+      const sizeArray = Array.isArray(size) ? size : size.split(',').map(s => s.trim()).filter(Boolean);
+      if (sizeArray.length > 0) {
+        const productIdsWithSize = await ProductSize.findAll({
+          attributes: ['productId'],
+          where: {
+            size: { [Op.in]: sizeArray },
+            stock: { [Op.gt]: 0 }
+          },
+          raw: true
+        });
+        const ids = productIdsWithSize.map(ps => ps.productId);
+        where.id = { [Op.in]: ids };
+      }
     }
 
     // Search query (matches productName, brand, or description)
@@ -278,6 +295,64 @@ const getProductSizes = async (req, res, next) => {
   }
 };
 
+const getAllUniqueSizes = async (req, res, next) => {
+  try {
+    const { categoryId } = req.query;
+
+    const include = [
+      {
+        model: Product,
+        as: 'product',
+        attributes: [],
+        include: [
+          {
+            model: Category,
+            as: 'category',
+            attributes: []
+          }
+        ]
+      }
+    ];
+
+    const where = {};
+
+    if (categoryId) {
+      const category = await Category.findByPk(categoryId);
+      if (!category || category.categoryName.toLowerCase() === 'equipment') {
+        return res.status(200).json({ sizes: [] });
+      }
+      where['$product.categoryId$'] = parseInt(categoryId);
+    } else {
+      where['$product.category.categoryName$'] = {
+        [Op.ne]: 'Equipment'
+      };
+    }
+
+    where.size = {
+      [Op.and]: [
+        { [Op.ne]: 'N/A' },
+        { [Op.ne]: '' },
+        { [Op.not]: null }
+      ]
+    };
+
+    const sizes = await ProductSize.findAll({
+      attributes: [[sequelize.fn('DISTINCT', sequelize.col('ProductSize.size')), 'size']],
+      include,
+      where,
+      raw: true
+    });
+
+    const sizeList = sizes.map(s => s.size).filter(Boolean);
+
+    res.status(200).json({
+      sizes: sizeList
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createProduct,
   updateProduct,
@@ -285,5 +360,7 @@ module.exports = {
   getProducts,
   getProductById,
   updateProductSizes,
-  getProductSizes
+  getProductSizes,
+  getAllUniqueSizes
 };
+
