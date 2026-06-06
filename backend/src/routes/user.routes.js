@@ -12,4 +12,8 @@ router.post('/suppliers', userController.createSupplier);
 router.put('/suppliers/:id', userController.updateSupplier);
 router.delete('/suppliers/:id', userController.deleteSupplier);
 
+// Customer management routes
+router.get('/customers', userController.getCustomers);
+router.get('/customers/:id', userController.getCustomerDetails);
+
 module.exports = router;

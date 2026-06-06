@@ -21,7 +21,7 @@ const generateRefreshToken = (user) => {
 
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, role, phone, address } = req.body;
+    const { name, username, email, password, role, phone, address } = req.body;
 
     // Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
@@ -32,11 +32,13 @@ const register = async (req, res, next) => {
     // Create user - public registration must only create CUSTOMER accounts
     const newUser = await User.create({
       name,
+      username: username || null,
       email,
       password, // hashed automatically by model hooks
       role: 'CUSTOMER',
       phone,
       address,
+      isActive: true,
       createdByAdmin: false
     });
 

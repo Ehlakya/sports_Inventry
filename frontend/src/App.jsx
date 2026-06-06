@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from './store/index';
 import { ToastProvider } from './components/common/Toast';
+import CursorGlow from './components/common/CursorGlow';
 
 // Layouts
 import AdminLayout from './layouts/AdminLayout';
@@ -54,6 +55,7 @@ function App() {
   return (
     <Provider store={store}>
       <ToastProvider>
+        <CursorGlow />
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>

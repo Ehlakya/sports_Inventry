@@ -15,6 +15,11 @@ const User = sequelize.define('User', {
       notEmpty: true
     }
   },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -46,6 +51,11 @@ const User = sequelize.define('User', {
   refreshToken: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
   },
   createdByAdmin: {
     type: DataTypes.BOOLEAN,

@@ -18,6 +18,7 @@ const Register = () => {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       name: '',
+      username: '',
       email: '',
       password: '',
       phone: '',
@@ -83,6 +84,23 @@ const Register = () => {
             </div>
             {errors.name && (
               <span className="text-[10px] text-red-400 font-semibold">{errors.name.message}</span>
+            )}
+          </div>
+
+          {/* Username */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-300">Username</label>
+            <div className="relative">
+              <input
+                type="text"
+                {...register('username', { required: 'Username is required', minLength: { value: 3, message: 'Username too short' } })}
+                placeholder="johndoe123"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
+              />
+              <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+            </div>
+            {errors.username && (
+              <span className="text-[10px] text-red-400 font-semibold">{errors.username.message}</span>
             )}
           </div>
 
