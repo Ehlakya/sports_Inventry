@@ -301,7 +301,13 @@ const SupplierProducts = () => {
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
               <h1 className="text-2xl font-black uppercase tracking-tight">Supplier Catalog</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Found {products.length} products available for bulk ordering</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {selectedSizes.length > 0 ? (
+                  `Showing ${products.length} Products for Size ${selectedSizes.join(', ')}`
+                ) : (
+                  `Found ${products.length} products available for bulk ordering`
+                )}
+              </p>
             </div>
             <div className="flex items-center gap-2 text-slate-400 text-xs">
               <Grid className="h-4 w-4 text-slate-700 dark:text-slate-300" /> Grid View
