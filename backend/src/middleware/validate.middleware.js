@@ -10,8 +10,9 @@ const validateBody = (schema) => {
         field: detail.path.join('.'),
         message: detail.message
       }));
+      // Provide the first specific message to match the required validation message
       return res.status(400).json({
-        error: 'Validation Failed',
+        error: error.details[0].message || 'Validation Failed',
         details: errors
       });
     }
