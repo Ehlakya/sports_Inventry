@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, SlidersHorizontal, Package, Grid, RefreshCw } from 'lucide-react';
 import apiClient from '../../api/axios';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../store/cartSlice';
 import { useToast } from '../../components/common/Toast';
 import { CardSkeleton } from '../../components/common/Skeleton';
 
@@ -13,6 +15,8 @@ const SupplierProducts = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const dispatch = useDispatch();
+  
   // Filter States
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('categoryId') || '');
@@ -20,9 +24,22 @@ const SupplierProducts = () => {
   const [selectedSize, setSelectedSize] = useState('');
   const [maxPrice, setMaxPrice] = useState(20000);
 
+  // Modal States
+  const [modalProduct, setModalProduct] = useState(null);
+  const [modalSize, setModalSize] = useState('');
+  const [modalQty, setModalQty] = useState(1);
+
   // Options lists
-  const brands = ['Nike', 'Adidas', 'Puma', 'Kookaburra', 'Wilson'];
-  const sizes = ['S', 'M', 'L', 'UK-8', 'UK-9', 'UK-10', 'Standard SH', 'Harrow'];
+  const brands = ['Nike', 'Adidas', 'Puma', 'Kookaburra', 'Wilson', 'Decathlon', 'Yonex', 'Under Armour', 'Reebok'];
+  
+  const getSizesForCategory = (catId) => {
+    if (!catId) return ['S', 'M', 'L', 'XL', 'XXL', '5', '6', '7', '8', '9', '10'];
+    const cat = categories.find(c => c.id.toString() === catId);
+    if (cat?.categoryName === 'Apparel') return ['S', 'M', 'L', 'XL', 'XXL'];
+    if (cat?.categoryName === 'Footwear') return ['5', '6', '7', '8', '9', '10'];
+    return [];
+  };
+  const sizes = getSizesForCategory(selectedCategory);
 
   // Sync state with URL params
   useEffect(() => {
@@ -89,6 +106,52 @@ const SupplierProducts = () => {
     setSelectedSize('');
     setMaxPrice(20000);
     setSearchParams({});
+  };
+
+  const openModal = (product) => {
+    setModalProduct(product);
+    if (product.category?.categoryName !== 'Equipment' && product.sizes?.length > 0) {
+      const firstAvailable = product.sizes.find(s => s.stock > 0);
+      setModalSize(firstAvailable ? firstAvailable.size : '');
+    } else {
+      setModalSize('N/A');
+    }
+    setModalQty(1);
+  };
+
+  const handleAddToCart = () => {
+    if (!modalSize) {
+      showToast('Please select a size.', 'error');
+      return;
+    }
+    if (modalQty < 1) {
+      showToast('Quantity must be at least 1.', 'error');
+      return;
+    }
+    
+    let maxStock = modalProduct.availableQuantity;
+    if (modalSize !== 'N/A') {
+      const sizeObj = modalProduct.sizes?.find(s => s.size === modalSize);
+      maxStock = sizeObj ? sizeObj.stock : 0;
+    }
+
+    if (modalQty > maxStock) {
+      showToast(`Only ${maxStock} items available in stock.`, 'warning');
+      return;
+    }
+
+    dispatch(addToCart({
+      productId: modalProduct.id,
+      productName: modalProduct.productName,
+      brand: modalProduct.brand,
+      size: modalSize,
+      quantity: modalQty,
+      price: parseFloat(modalProduct.supplierPrice),
+      availableStock: maxStock
+    }));
+
+    showToast(`Added ${modalQty}x ${modalProduct.productName}${modalSize !== 'N/A' ? ` (Size: ${modalSize})` : ''} to Bulk Order Cart.`, 'success');
+    setModalProduct(null);
   };
 
   return (
@@ -170,20 +233,22 @@ const SupplierProducts = () => {
           </div>
 
           {/* Size Filter */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Size Filter</label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {sizes.map((sz) => (
-                <button
-                  key={sz}
-                  onClick={() => setSelectedSize(selectedSize === sz ? '' : sz)}
-                  className={`px-2 py-1.5 text-xs border rounded-lg transition-all text-center truncate ${selectedSize === sz ? 'bg-orange-500 text-white border-orange-500 font-semibold' : 'border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900'}`}
-                >
-                  {sz}
-                </button>
-              ))}
+          {sizes.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Size Filter</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {sizes.map((sz) => (
+                  <button
+                    key={sz}
+                    onClick={() => setSelectedSize(selectedSize === sz ? '' : sz)}
+                    className={`px-2 py-1.5 text-xs border rounded-lg transition-all text-center truncate ${selectedSize === sz ? 'bg-orange-500 text-white border-orange-500 font-semibold' : 'border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900'}`}
+                  >
+                    {sz}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Price Range Slider */}
           <div className="space-y-2">
@@ -290,13 +355,13 @@ const SupplierProducts = () => {
                         </span>
                       </div>
                       
-                      <Link
-                        to="/supplier/bulk-order"
+                      <button
+                        onClick={() => openModal(product)}
                         className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-900 text-white hover:bg-blue-800 text-xs font-semibold transition-colors"
                         title="Bulk Order"
                       >
                         <Package className="h-4 w-4" /> Bulk Order
-                      </Link>
+                      </button>
                     </div>
 
                   </div>
@@ -308,6 +373,60 @@ const SupplierProducts = () => {
         </div>
 
       </div>
+
+      {/* ADD TO BULK ORDER MODAL */}
+      {modalProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="glass-panel rounded-2xl w-full max-w-sm shadow-2xl p-6 bg-white dark:bg-slate-900">
+            <h3 className="text-lg font-bold mb-2 text-slate-800 dark:text-slate-100">Add to Bulk Order</h3>
+            <p className="text-sm font-semibold mb-4 text-blue-900 dark:text-blue-400">{modalProduct.productName}</p>
+            
+            {modalProduct.category?.categoryName !== 'Equipment' && modalProduct.sizes?.length > 0 && (
+              <div className="mb-4">
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Select Size</label>
+                <select
+                  value={modalSize}
+                  onChange={(e) => setModalSize(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 dark:bg-slate-800 dark:border-slate-700 text-sm"
+                >
+                  <option value="" disabled>Select a size...</option>
+                  {modalProduct.sizes.map(s => (
+                    <option key={s.size} value={s.size} disabled={s.stock === 0}>
+                      {s.size} {s.stock === 0 ? '(Out of Stock)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
+            <div className="mb-6">
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Quantity</label>
+              <input
+                type="number"
+                min="1"
+                value={modalQty}
+                onChange={(e) => setModalQty(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 dark:bg-slate-800 dark:border-slate-700 text-sm"
+              />
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setModalProduct(null)}
+                className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 py-2 rounded-xl bg-blue-900 text-white hover:bg-blue-800 text-sm font-semibold shadow-lg shadow-blue-900/20"
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

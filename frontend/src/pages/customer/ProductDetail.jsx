@@ -26,11 +26,15 @@ const ProductDetail = () => {
         setProduct(response.data.product);
         
         // Auto-select first available size that has stock
-        const firstAvailable = response.data.product.sizes?.find(s => s.stock > 0);
-        if (firstAvailable) {
-          setSelectedSize(firstAvailable.size);
-        } else if (response.data.product.sizes?.length > 0) {
-          setSelectedSize(response.data.product.sizes[0].size);
+        if (response.data.product.category?.categoryName !== 'Equipment' && response.data.product.sizes?.length > 0) {
+          const firstAvailable = response.data.product.sizes?.find(s => s.stock > 0);
+          if (firstAvailable) {
+            setSelectedSize(firstAvailable.size);
+          } else {
+            setSelectedSize(response.data.product.sizes[0].size);
+          }
+        } else {
+          setSelectedSize('N/A');
         }
       } catch (error) {
         console.error('Error fetching product detail:', error);
@@ -44,7 +48,7 @@ const ProductDetail = () => {
   }, [id]);
 
   const activeSizeConfig = product?.sizes?.find(s => s.size === selectedSize);
-  const maxAvailableStock = activeSizeConfig ? activeSizeConfig.stock : 0;
+  const maxAvailableStock = selectedSize === 'N/A' ? product?.availableQuantity || 0 : (activeSizeConfig ? activeSizeConfig.stock : 0);
 
   const handleQtyChange = (val) => {
     const newQty = quantity + val;
@@ -164,34 +168,36 @@ const ProductDetail = () => {
             </div>
 
             {/* Sizes selection */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Available Sizes</h3>
-              <div className="flex flex-wrap gap-2">
-                {product.sizes?.map((sz) => {
-                  const hasStock = sz.stock > 0;
-                  const isSelected = selectedSize === sz.size;
+            {product.category?.categoryName !== 'Equipment' && product.sizes?.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Available Sizes</h3>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes?.map((sz) => {
+                    const hasStock = sz.stock > 0;
+                    const isSelected = selectedSize === sz.size;
 
-                  return (
-                    <button
-                      key={sz.size}
-                      onClick={() => hasStock && setSelectedSize(sz.size)}
-                      disabled={!hasStock}
-                      className={`
-                        px-4 py-2 text-xs font-bold border rounded-xl transition-all
-                        ${isSelected 
-                          ? 'bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20' 
-                          : hasStock 
-                            ? 'border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900' 
-                            : 'border-slate-100 dark:border-slate-950/20 text-slate-300 dark:text-slate-700 line-through cursor-not-allowed bg-slate-50/20'
-                        }
-                      `}
-                    >
-                      {sz.size} {hasStock ? `(${sz.stock})` : '(Out)'}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={sz.size}
+                        onClick={() => hasStock && setSelectedSize(sz.size)}
+                        disabled={!hasStock}
+                        className={`
+                          px-4 py-2 text-xs font-bold border rounded-xl transition-all
+                          ${isSelected 
+                            ? 'bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20' 
+                            : hasStock 
+                              ? 'border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900' 
+                              : 'border-slate-100 dark:border-slate-950/20 text-slate-300 dark:text-slate-700 line-through cursor-not-allowed bg-slate-50/20'
+                          }
+                        `}
+                      >
+                        {sz.size} {hasStock ? `(${sz.stock})` : '(Out)'}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity Selector */}
             {maxAvailableStock > 0 && (

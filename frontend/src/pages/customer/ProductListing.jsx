@@ -24,8 +24,16 @@ const ProductListing = () => {
   const [maxPrice, setMaxPrice] = useState(20000);
 
   // Options lists
-  const brands = ['Nike', 'Adidas', 'Puma', 'Kookaburra', 'Wilson'];
-  const sizes = ['S', 'M', 'L', 'UK-8', 'UK-9', 'UK-10', 'Standard SH', 'Harrow'];
+  const brands = ['Nike', 'Adidas', 'Puma', 'Kookaburra', 'Wilson', 'Decathlon', 'Yonex', 'Under Armour', 'Reebok'];
+  
+  const getSizesForCategory = (catId) => {
+    if (!catId) return ['S', 'M', 'L', 'XL', 'XXL', '5', '6', '7', '8', '9', '10'];
+    const cat = categories.find(c => c.id.toString() === catId);
+    if (cat?.categoryName === 'Apparel') return ['S', 'M', 'L', 'XL', 'XXL'];
+    if (cat?.categoryName === 'Footwear') return ['5', '6', '7', '8', '9', '10'];
+    return [];
+  };
+  const sizes = getSizesForCategory(selectedCategory);
 
   // Sync state with URL params
   useEffect(() => {
@@ -85,19 +93,17 @@ const ProductListing = () => {
   }, [search, selectedCategory, selectedBrand, selectedSize, maxPrice]);
 
   const handleQuickAdd = (product) => {
-    if (!product.sizes || product.sizes.length === 0) {
-      showToast('No sizes available for this product.', 'error');
-      return;
+    let targetSize = { size: 'N/A', stock: product.availableQuantity };
+
+    if (product.category?.categoryName !== 'Equipment' && product.sizes?.length > 0) {
+      targetSize = product.sizes.find(s => s.size === selectedSize && s.stock > 0);
+      if (!targetSize) {
+        targetSize = product.sizes.find(s => s.stock > 0) || product.sizes[0];
+      }
     }
-    
-    // Choose size: selected size filter if valid, or first size with stock
-    let targetSize = product.sizes.find(s => s.size === selectedSize && s.stock > 0);
-    if (!targetSize) {
-      targetSize = product.sizes.find(s => s.stock > 0) || product.sizes[0];
-    }
-    
-    if (targetSize.stock === 0) {
-      showToast('Product size is out of stock.', 'warning');
+
+    if (!targetSize || targetSize.stock === 0) {
+      showToast('Product is out of stock.', 'warning');
       return;
     }
 
@@ -111,7 +117,7 @@ const ProductListing = () => {
       availableStock: targetSize.stock
     }));
 
-    showToast(`Added ${product.productName} (Size: ${targetSize.size}) to cart.`, 'success');
+    showToast(`Added ${product.productName}${targetSize.size !== 'N/A' ? ` (Size: ${targetSize.size})` : ''} to cart.`, 'success');
   };
 
   const handleResetFilters = () => {
@@ -202,20 +208,22 @@ const ProductListing = () => {
           </div>
 
           {/* Size Filter */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Size Filter</label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {sizes.map((sz) => (
-                <button
-                  key={sz}
-                  onClick={() => setSelectedSize(selectedSize === sz ? '' : sz)}
-                  className={`px-2 py-1.5 text-xs border rounded-lg transition-all text-center truncate ${selectedSize === sz ? 'bg-orange-500 text-white border-orange-500 font-semibold' : 'border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900'}`}
-                >
-                  {sz}
-                </button>
-              ))}
+          {sizes.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Size Filter</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {sizes.map((sz) => (
+                  <button
+                    key={sz}
+                    onClick={() => setSelectedSize(selectedSize === sz ? '' : sz)}
+                    className={`px-2 py-1.5 text-xs border rounded-lg transition-all text-center truncate ${selectedSize === sz ? 'bg-orange-500 text-white border-orange-500 font-semibold' : 'border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900'}`}
+                  >
+                    {sz}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Price Range Slider */}
           <div className="space-y-2">

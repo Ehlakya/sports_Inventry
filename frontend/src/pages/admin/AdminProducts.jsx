@@ -95,12 +95,29 @@ const AdminProducts = () => {
   const closeModal = () => { setModal(null); setSelected(null); setForm(EMPTY_FORM); };
 
   // ── Size row helpers ───────────────────────────────────────────────────────
+  // ── Size row helpers ───────────────────────────────────────────────────────
   const addSizeRow = () => setForm(f => ({ ...f, sizes: [...f.sizes, { size: '', stock: 0 }] }));
   const removeSizeRow = (i) => setForm(f => ({ ...f, sizes: f.sizes.filter((_, idx) => idx !== i) }));
   const updateSize = (i, field, value) => setForm(f => ({
     ...f,
     sizes: f.sizes.map((s, idx) => idx === i ? { ...s, [field]: field === 'stock' ? Number(value) : value } : s)
   }));
+
+  const handleCategoryChange = (e) => {
+    const newCatId = e.target.value;
+    const catName = categories.find(c => c.id === Number(newCatId))?.categoryName;
+    let newSizes = form.sizes;
+
+    if (catName === 'Apparel') {
+      newSizes = ['S', 'M', 'L', 'XL', 'XXL'].map(s => ({ size: s, stock: 0 }));
+    } else if (catName === 'Footwear') {
+      newSizes = ['5', '6', '7', '8', '9', '10'].map(s => ({ size: s, stock: 0 }));
+    } else if (catName === 'Equipment') {
+      newSizes = [];
+    }
+
+    setForm(f => ({ ...f, categoryId: newCatId, sizes: newSizes }));
+  };
 
   // ── Submit Handlers ────────────────────────────────────────────────────────
   const handleSave = async (e) => {
@@ -308,7 +325,7 @@ const AdminProducts = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Category <span className="text-red-500">*</span></label>
-                  <select required value={form.categoryId} onChange={e => setForm(f => ({ ...f, categoryId: e.target.value }))} className={inputCls}>
+                  <select required value={form.categoryId} onChange={handleCategoryChange} className={inputCls}>
                     <option value="">Select category</option>
                     {categories.map(c => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
                   </select>
@@ -383,41 +400,55 @@ const AdminProducts = () => {
               </div>
 
               {/* Sizes & Stock */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Sizes &amp; Stock</label>
-                  <button type="button" onClick={addSizeRow} className="text-xs text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1 font-semibold">
-                    <PlusCircle className="h-3.5 w-3.5" /> Add Size
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {form.sizes.map((row, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input
-                        type="text" value={row.size}
-                        onChange={e => updateSize(i, 'size', e.target.value)}
-                        placeholder="e.g. UK-9, M, Standard"
-                        className={inputCls + ' flex-1'}
-                      />
-                      <input
-                        type="number" min="0" value={row.stock}
-                        onChange={e => updateSize(i, 'stock', e.target.value)}
-                        placeholder="Stock"
-                        className={inputCls + ' w-24'}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeSizeRow(i)}
-                        disabled={form.sizes.length === 1}
-                        className="p-2 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-30 transition-colors"
-                      >
-                        <MinusCircle className="h-4 w-4" />
-                      </button>
+              {(() => {
+                const catName = categories.find(c => c.id === Number(form.categoryId))?.categoryName;
+                if (catName === 'Equipment') return null; // Hide sizes completely
+                
+                const isPredefined = catName === 'Apparel' || catName === 'Footwear';
+
+                return (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Sizes &amp; Stock</label>
+                      {!isPredefined && (
+                        <button type="button" onClick={addSizeRow} className="text-xs text-blue-700 dark:text-blue-400 hover:underline flex items-center gap-1 font-semibold">
+                          <PlusCircle className="h-3.5 w-3.5" /> Add Size
+                        </button>
+                      )}
                     </div>
-                  ))}
-                </div>
-                <p className="text-[10px] text-slate-400 mt-1.5">Leave size blank to skip. For edit, sizes update separately.</p>
-              </div>
+                    <div className="space-y-2">
+                      {form.sizes.map((row, i) => (
+                        <div key={i} className="flex gap-2 items-center">
+                          <input
+                            type="text" value={row.size}
+                            onChange={e => updateSize(i, 'size', e.target.value)}
+                            readOnly={isPredefined}
+                            placeholder="e.g. UK-9, M, Standard"
+                            className={inputCls + ' flex-1' + (isPredefined ? ' bg-slate-50 dark:bg-slate-800/50 cursor-not-allowed' : '')}
+                          />
+                          <input
+                            type="number" min="0" value={row.stock}
+                            onChange={e => updateSize(i, 'stock', e.target.value)}
+                            placeholder="Stock"
+                            className={inputCls + ' w-24'}
+                          />
+                          {!isPredefined && (
+                            <button
+                              type="button"
+                              onClick={() => removeSizeRow(i)}
+                              disabled={form.sizes.length === 1}
+                              className="p-2 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-30 transition-colors"
+                            >
+                              <MinusCircle className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1.5">Leave size blank to skip. For edit, sizes update separately.</p>
+                  </div>
+                );
+              })()}
 
               {/* Actions */}
               <div className="flex gap-3 pt-2 border-t border-slate-100 dark:border-slate-700">

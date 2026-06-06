@@ -3,11 +3,11 @@ const router = express.Router();
 const productController = require('../controllers/product.controller');
 const { validateBody } = require('../middleware/validate.middleware');
 const { createProductSchema, updateProductSchema, updateSizesSchema } = require('../validations/product.validation');
-const { authenticateJWT, authorizeRoles } = require('../middleware/auth.middleware');
+const { authenticateJWT, authorizeRoles, authenticateOptional } = require('../middleware/auth.middleware');
 
-// Public read routes — no authentication required for catalog browsing
-router.get('/', productController.getProducts);
-router.get('/:id', productController.getProductById);
+// Public read routes — optional authentication for role-based pricing
+router.get('/', authenticateOptional, productController.getProducts);
+router.get('/:id', authenticateOptional, productController.getProductById);
 
 // Protected routes below require authentication
 router.use(authenticateJWT);

@@ -43,37 +43,53 @@ const placeOrder = async (userId, userRole, items) => {
         throw new Error(`Product with ID ${productId} not found.`);
       }
 
-      // Lock product size stock
-      const productSize = await ProductSize.findOne({
-        where: { productId, size },
-        transaction: t,
-        lock: true
-      });
+      let quantityBefore;
+      let quantityAfter;
 
-      if (!productSize) {
-        throw new Error(`Size "${size}" is not available for product "${product.productName}".`);
+      if (size && size !== 'N/A') {
+        // Lock product size stock
+        const productSize = await ProductSize.findOne({
+          where: { productId, size },
+          transaction: t,
+          lock: true
+        });
+
+        if (!productSize) {
+          throw new Error(`Size "${size}" is not available for product "${product.productName}".`);
+        }
+
+        if (productSize.stock < quantity) {
+          throw new Error(`Insufficient stock for product "${product.productName}" (Size: ${size}). Available: ${productSize.stock}, Requested: ${quantity}`);
+        }
+
+        // Capture stocks before adjustment
+        quantityBefore = productSize.stock;
+        quantityAfter = quantityBefore - quantity;
+
+        // Deduct stock
+        productSize.stock = quantityAfter;
+        await productSize.save({ transaction: t });
+
+        // Recalculate and update Product.availableQuantity
+        const allSizes = await ProductSize.findAll({
+          where: { productId },
+          transaction: t
+        });
+        const newAvailableQuantity = allSizes.reduce((sum, s) => sum + s.stock, 0);
+        product.availableQuantity = newAvailableQuantity;
+        await product.save({ transaction: t });
+      } else {
+        // Product has no size (e.g. Equipment)
+        if (product.availableQuantity < quantity) {
+          throw new Error(`Insufficient stock for product "${product.productName}". Available: ${product.availableQuantity}, Requested: ${quantity}`);
+        }
+        
+        quantityBefore = product.availableQuantity;
+        quantityAfter = quantityBefore - quantity;
+        
+        product.availableQuantity = quantityAfter;
+        await product.save({ transaction: t });
       }
-
-      if (productSize.stock < quantity) {
-        throw new Error(`Insufficient stock for product "${product.productName}" (Size: ${size}). Available: ${productSize.stock}, Requested: ${quantity}`);
-      }
-
-      // Capture stocks before adjustment
-      const quantityBefore = productSize.stock;
-      const quantityAfter = quantityBefore - quantity;
-
-      // Deduct stock
-      productSize.stock = quantityAfter;
-      await productSize.save({ transaction: t });
-
-      // Recalculate and update Product.availableQuantity
-      const allSizes = await ProductSize.findAll({
-        where: { productId },
-        transaction: t
-      });
-      const newAvailableQuantity = allSizes.reduce((sum, s) => sum + s.stock, 0);
-      product.availableQuantity = newAvailableQuantity;
-      await product.save({ transaction: t });
 
       // Create Inventory Transaction Record
       const transactionType = orderType === 'CUSTOMER_ORDER' ? 'CUSTOMER_ORDER_OUTFLOW' : 'SUPPLIER_ORDER_OUTFLOW';
@@ -185,11 +201,15 @@ const calculateCartSummary = async (items, userRole) => {
       throw new Error(`Product with ID ${productId} not found.`);
     }
 
-    const productSize = await ProductSize.findOne({
-      where: { productId, size }
-    });
-
-    const availableStock = productSize ? productSize.stock : 0;
+    let availableStock = 0;
+    if (size && size !== 'N/A') {
+      const productSize = await ProductSize.findOne({
+        where: { productId, size }
+      });
+      availableStock = productSize ? productSize.stock : 0;
+    } else {
+      availableStock = product.availableQuantity || 0;
+    }
     const isAvailable = availableStock >= quantity;
 
     const price = userRole === 'SUPPLIER' ? product.supplierPrice : product.customerPrice;

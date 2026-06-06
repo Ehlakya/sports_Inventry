@@ -34,7 +34,7 @@ const getOrderHistory = async (req, res, next) => {
         {
           model: OrderItem,
           as: 'items',
-          include: [{ model: Product, as: 'product', attributes: ['productName', 'brand'] }]
+          include: [{ model: Product, as: 'product', attributes: ['productName', 'brand', 'imageUrl'] }]
         }
       ]
     };
@@ -68,7 +68,7 @@ const getOrderById = async (req, res, next) => {
         {
           model: OrderItem,
           as: 'items',
-          include: [{ model: Product, as: 'product', attributes: ['productName', 'brand'] }]
+          include: [{ model: Product, as: 'product', attributes: ['productName', 'brand', 'imageUrl'] }]
         },
         { model: User, as: 'user', attributes: ['name', 'email', 'phone', 'address', 'role'] }
       ]
