@@ -142,20 +142,22 @@ const getProducts = async (req, res, next) => {
       where.brand = brand;
     }
 
-    // Filter by Size (dynamically from database)
+    // Filter by Size — uses Op.in which generates SQL: WHERE size IN ('XL')
+    // This is EXACT string equality: 'XL' will NOT match 'XXL', '2XL', etc.
     if (size) {
       const sizeArray = Array.isArray(size) ? size : size.split(',').map(s => s.trim()).filter(Boolean);
       if (sizeArray.length > 0) {
         const productIdsWithSize = await ProductSize.findAll({
           attributes: ['productId'],
           where: {
-            size: { [Op.in]: sizeArray },
+            size: { [Op.in]: sizeArray }, // Exact match only — no LIKE, no substring
             stock: { [Op.gt]: 0 }
           },
           raw: true
         });
         const ids = productIdsWithSize.map(ps => ps.productId);
-        where.id = { [Op.in]: ids };
+        // If no products match the selected sizes, return empty result
+        where.id = ids.length > 0 ? { [Op.in]: ids } : { [Op.in]: [-1] };
       }
     }
 
@@ -343,7 +345,22 @@ const getAllUniqueSizes = async (req, res, next) => {
       raw: true
     });
 
-    const sizeList = sizes.map(s => s.size).filter(Boolean);
+    const rawList = sizes.map(s => s.size).filter(Boolean);
+
+    // Sort sizes in a human-logical order (XS → S → M → L → XL → XXL → 2XL… then shoe sizes)
+    const apparelOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', '4XL', '5XL'];
+    const sizeList = rawList.sort((a, b) => {
+      const ai = apparelOrder.indexOf(a);
+      const bi = apparelOrder.indexOf(b);
+      if (ai !== -1 && bi !== -1) return ai - bi;   // Both are apparel sizes
+      if (ai !== -1) return -1;                      // a is apparel, b is not
+      if (bi !== -1) return 1;                       // b is apparel, a is not
+      // For shoe sizes like UK-7, UK-8 — sort numerically by extracting trailing number
+      const aNum = parseFloat(a.replace(/[^\d.]/g, ''));
+      const bNum = parseFloat(b.replace(/[^\d.]/g, ''));
+      if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+      return a.localeCompare(b);                     // Fallback: alphabetical
+    });
 
     res.status(200).json({
       sizes: sizeList
