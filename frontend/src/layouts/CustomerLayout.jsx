@@ -37,7 +37,7 @@ const CustomerLayout = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <span className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">
-                ANTIGRAVITY SPORTS
+                FULL SPORTS
               </span>
               <p className="text-xs leading-relaxed text-slate-500">
                 Premium sports apparel, professional accessories, footwear, and equipment. Serving athletes and suppliers worldwide.
@@ -62,14 +62,14 @@ const CustomerLayout = () => {
             <div>
               <h3 className="text-sm font-semibold text-slate-200 tracking-wider uppercase mb-4">Corporate Office</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Antigravity Sports Inc.<br />
+                Full Sports Inc.<br />
                 Vasant Kunj Executive Hub,<br />
                 New Delhi, 110070
               </p>
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px]">
-            <p>&copy; {new Date().getFullYear()} Antigravity Sports. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Full Sports. All rights reserved.</p>
             <p>Made with premium glassmorphic React components.</p>
           </div>
         </div>
