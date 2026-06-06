@@ -1,49 +1,54 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { Mail, Lock, User, Phone, MapPin, UserPlus, Loader2 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
-import { loginSuccess } from '../../store/authSlice';
 import apiClient from '../../api/axios';
 import SportsBackground from '../../components/common/SportsBackground';
 
 const Register = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: {
       name: '',
       username: '',
       email: '',
       password: '',
+      confirmPassword: '',
       phone: '',
       address: '',
-      role: 'CUSTOMER' // Locked for public registrations
+      role: 'CUSTOMER'
     }
   });
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await apiClient.post('/auth/register', data);
+      await apiClient.post('/auth/register', data);
       
-      const { user, accessToken, refreshToken } = response.data;
-      
-      // Auto login
-      dispatch(loginSuccess({ user, accessToken, refreshToken }));
-      showToast(`Welcome to Antigravity Sports, ${user.name}!`, 'success');
-      navigate('/');
+      showToast('Account created successfully.', 'success');
+      navigate('/login');
     } catch (error) {
       console.error('Registration error:', error);
       const errMsg = error.response?.data?.error || 'Registration failed. Please try again.';
       showToast(errMsg, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onError = (errors) => {
+    if (Object.keys(errors).length > 0) {
+      // If the error is specifically password mismatch, show that, otherwise show generic required error
+      if (errors.confirmPassword && errors.confirmPassword.type === 'validate') {
+        showToast('Passwords do not match.', 'error');
+      } else {
+        showToast('All fields are required.', 'error');
+      }
     }
   };
 
@@ -68,7 +73,7 @@ const Register = () => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-4">
           
           {/* Full Name */}
           <div className="space-y-1">
@@ -76,15 +81,12 @@ const Register = () => {
             <div className="relative">
               <input
                 type="text"
-                {...register('name', { required: 'Name is required', minLength: { value: 2, message: 'Name too short' } })}
+                {...register('name', { required: 'Name is required' })}
                 placeholder="John Doe"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
               />
               <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
             </div>
-            {errors.name && (
-              <span className="text-[10px] text-red-400 font-semibold">{errors.name.message}</span>
-            )}
           </div>
 
           {/* Username */}
@@ -93,15 +95,12 @@ const Register = () => {
             <div className="relative">
               <input
                 type="text"
-                {...register('username', { required: 'Username is required', minLength: { value: 3, message: 'Username too short' } })}
+                {...register('username', { required: 'Username is required' })}
                 placeholder="johndoe123"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
               />
               <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
             </div>
-            {errors.username && (
-              <span className="text-[10px] text-red-400 font-semibold">{errors.username.message}</span>
-            )}
           </div>
 
           {/* Email */}
@@ -119,9 +118,6 @@ const Register = () => {
               />
               <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
             </div>
-            {errors.email && (
-              <span className="text-[10px] text-red-400 font-semibold">{errors.email.message}</span>
-            )}
           </div>
 
           {/* Password */}
@@ -131,26 +127,39 @@ const Register = () => {
               <input
                 type="password"
                 {...register('password', { 
-                  required: 'Password is required',
-                  minLength: { value: 6, message: 'Password must be at least 6 characters' }
+                  required: 'Password is required'
                 })}
                 placeholder="••••••••"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
               />
               <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
             </div>
-            {errors.password && (
-              <span className="text-[10px] text-red-400 font-semibold">{errors.password.message}</span>
-            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-300">Confirm Password</label>
+            <div className="relative">
+              <input
+                type="password"
+                {...register('confirmPassword', { 
+                  required: 'Confirm Password is required',
+                  validate: value => value === watch('password') || 'Passwords do not match.'
+                })}
+                placeholder="••••••••"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
+              />
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+            </div>
           </div>
 
           {/* Phone */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Phone Number (Optional)</label>
+            <label className="text-xs font-semibold text-slate-300">Phone Number</label>
             <div className="relative">
               <input
                 type="tel"
-                {...register('phone')}
+                {...register('phone', { required: 'Phone Number is required' })}
                 placeholder="+91 98765 43210"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
               />
@@ -158,13 +167,13 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Shipping Address */}
+          {/* Address */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Shipping Address (Optional)</label>
+            <label className="text-xs font-semibold text-slate-300">Address</label>
             <div className="relative">
               <textarea
                 rows="2"
-                {...register('address')}
+                {...register('address', { required: 'Address is required' })}
                 placeholder="Street Address, City, Pincode"
                 className="w-full pl-10 pr-4 py-2 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650 resize-none"
               />

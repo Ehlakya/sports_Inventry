@@ -21,12 +21,27 @@ const generateRefreshToken = (user) => {
 
 const register = async (req, res, next) => {
   try {
-    const { name, username, email, password, role, phone, address } = req.body;
+    const { name, username, email, password, confirmPassword, role, phone, address } = req.body;
+
+    // Validate required fields
+    if (!name || !username || !email || !password || !confirmPassword || !phone || !address) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: 'Passwords do not match.' });
+    }
 
     // Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered.' });
+    }
+
+    // Check if username already exists
+    const existingUsername = await User.findOne({ where: { username } });
+    if (existingUsername) {
+      return res.status(400).json({ error: 'Username is already taken.' });
     }
 
     // Create user - public registration must only create CUSTOMER accounts
