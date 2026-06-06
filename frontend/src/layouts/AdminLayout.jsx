@@ -3,6 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
+import SportsBackground from '../components/common/SportsBackground';
 
 const AdminLayout = () => {
   const { isAuthenticated, role } = useSelector((state) => state.auth);
@@ -23,6 +24,7 @@ const AdminLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SportsBackground variant="admin" />
       {/* Universal header */}
       <Navbar toggleMobileSidebar={toggleSidebar} />
 

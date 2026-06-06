@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/common/Navbar';
+import SportsBackground from '../components/common/SportsBackground';
 
 const CustomerLayout = () => {
   const { isAuthenticated, role } = useSelector((state) => state.auth);
@@ -21,6 +22,7 @@ const CustomerLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SportsBackground variant="customer" />
       {/* Customer Header */}
       <Navbar />
 

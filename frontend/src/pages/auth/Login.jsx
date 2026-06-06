@@ -6,6 +6,7 @@ import { Mail, Lock, LogIn, Loader2 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 import { loginStart, loginSuccess, loginFailure } from '../../store/authSlice';
 import apiClient from '../../api/axios';
+import SportsBackground from '../../components/common/SportsBackground';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -48,7 +49,8 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center p-4 bg-gradient-to-tr from-slate-900 via-slate-950 to-blue-950">
+    <div className="relative flex min-h-[calc(100vh-64px)] items-center justify-center p-4 bg-gradient-to-tr from-slate-900 via-slate-950 to-blue-950">
+      <SportsBackground variant="customer" />
       
       {/* Background Glow */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-20">
