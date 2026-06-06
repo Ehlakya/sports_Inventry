@@ -1,5 +1,5 @@
 const orderService = require('../services/order.service');
-const { Order, OrderItem, Product, User } = require('../models');
+const { Order, OrderItem, Product, Category, User } = require('../models');
 
 const createOrder = async (req, res, next) => {
   try {
@@ -34,7 +34,14 @@ const getOrderHistory = async (req, res, next) => {
         {
           model: OrderItem,
           as: 'items',
-          include: [{ model: Product, as: 'product', attributes: ['productName', 'brand', 'imageUrl'] }]
+          include: [
+            {
+              model: Product,
+              as: 'product',
+              attributes: ['productName', 'brand', 'imageUrl', 'categoryId'],
+              include: [{ model: Category, as: 'category', attributes: ['categoryName'] }]
+            }
+          ]
         }
       ]
     };
@@ -68,7 +75,14 @@ const getOrderById = async (req, res, next) => {
         {
           model: OrderItem,
           as: 'items',
-          include: [{ model: Product, as: 'product', attributes: ['productName', 'brand', 'imageUrl'] }]
+          include: [
+            {
+              model: Product,
+              as: 'product',
+              attributes: ['productName', 'brand', 'imageUrl', 'categoryId'],
+              include: [{ model: Category, as: 'category', attributes: ['categoryName'] }]
+            }
+          ]
         },
         { model: User, as: 'user', attributes: ['name', 'email', 'phone', 'address', 'role'] }
       ]

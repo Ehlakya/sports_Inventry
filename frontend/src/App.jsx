@@ -22,6 +22,7 @@ import Cart from './pages/customer/Cart';
 import Checkout from './pages/customer/Checkout';
 import OrderSuccess from './pages/customer/OrderSuccess';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
+import CustomerOrders from './pages/customer/CustomerOrders';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -70,6 +71,7 @@ function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/dashboard" element={<CustomerDashboard />} />
+                <Route path="/orders" element={<CustomerOrders />} />
               </Route>
 
               {/* Admin Routes */}

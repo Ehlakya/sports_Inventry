@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { ShoppingCart, Search, User, LogOut, Sun, Moon, Package, List, Menu, X } from 'lucide-react';
+import { ShoppingCart, Search, User, LogOut, Sun, Moon, Package, List, Menu, X, ClipboardList } from 'lucide-react';
 import { logout } from '../../store/authSlice';
 import { selectCartTotalQuantity } from '../../store/cartSlice';
 
@@ -173,13 +173,22 @@ const Navbar = ({ toggleMobileSidebar }) => {
                           </Link>
                         )}
                         {role === 'CUSTOMER' && (
-                          <Link
-                            to="/dashboard"
-                            onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-                          >
-                            <List className="h-4 w-4" /> Dashboard
-                          </Link>
+                          <>
+                            <Link
+                              to="/orders"
+                              onClick={() => setIsProfileOpen(false)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+                            >
+                              <ClipboardList className="h-4 w-4" /> My Orders
+                            </Link>
+                            <Link
+                              to="/dashboard"
+                              onClick={() => setIsProfileOpen(false)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+                            >
+                              <List className="h-4 w-4" /> Dashboard
+                            </Link>
+                          </>
                         )}
 
                         <button
