@@ -30,8 +30,7 @@ const SupplierProducts = () => {
 
   // Modal States
   const [modalProduct, setModalProduct] = useState(null);
-  const [modalSize, setModalSize] = useState('');
-  const [modalQty, setModalQty] = useState(1);
+  const [modalQuantities, setModalQuantities] = useState({});
 
   // Options lists
   const brands = ['Nike', 'Adidas', 'Puma', 'Kookaburra', 'Wilson', 'Decathlon', 'Yonex', 'Under Armour', 'Reebok'];
@@ -124,47 +123,67 @@ const SupplierProducts = () => {
 
   const openModal = (product) => {
     setModalProduct(product);
-    if (product.category?.categoryName !== 'Equipment' && product.sizes?.length > 0) {
-      const firstAvailable = product.sizes.find(s => s.stock > 0);
-      setModalSize(firstAvailable ? firstAvailable.size : '');
+    const initialQuantities = {};
+    if (product.sizes && product.sizes.length > 0) {
+      product.sizes.forEach(s => {
+        initialQuantities[s.size] = '';
+      });
     } else {
-      setModalSize('N/A');
+      initialQuantities['N/A'] = '';
     }
-    setModalQty(1);
+    setModalQuantities(initialQuantities);
+  };
+
+  const handleQuantityChange = (size, value) => {
+    setModalQuantities(prev => ({
+      ...prev,
+      [size]: value === '' ? '' : Math.max(0, parseInt(value) || 0)
+    }));
   };
 
   const handleAddToCart = () => {
-    if (!modalSize) {
-      showToast('Please select a size.', 'error');
+    const itemsToAdd = [];
+    let hasError = false;
+
+    Object.entries(modalQuantities).forEach(([size, qtyStr]) => {
+      const qty = parseInt(qtyStr) || 0;
+      if (qty <= 0) return;
+
+      let maxStock = modalProduct.availableQuantity;
+      if (size !== 'N/A') {
+        const sizeObj = modalProduct.sizes?.find(s => s.size === size);
+        maxStock = sizeObj ? sizeObj.stock : 0;
+      }
+
+      if (qty > maxStock) {
+        showToast(`Size ${size}: Only ${maxStock} items available in stock.`, 'warning');
+        hasError = true;
+        return;
+      }
+
+      itemsToAdd.push({
+        productId: modalProduct.id,
+        productName: modalProduct.productName,
+        brand: modalProduct.brand,
+        size,
+        quantity: qty,
+        price: parseFloat(modalProduct.supplierPrice),
+        availableStock: maxStock
+      });
+    });
+
+    if (hasError) return;
+
+    if (itemsToAdd.length === 0) {
+      showToast('Please enter a quantity for at least one size.', 'error');
       return;
     }
-    if (modalQty < 1) {
-      showToast('Quantity must be at least 1.', 'error');
-      return;
-    }
-    
-    let maxStock = modalProduct.availableQuantity;
-    if (modalSize !== 'N/A') {
-      const sizeObj = modalProduct.sizes?.find(s => s.size === modalSize);
-      maxStock = sizeObj ? sizeObj.stock : 0;
-    }
 
-    if (modalQty > maxStock) {
-      showToast(`Only ${maxStock} items available in stock.`, 'warning');
-      return;
-    }
+    itemsToAdd.forEach(item => {
+      dispatch(addToCart(item));
+    });
 
-    dispatch(addToCart({
-      productId: modalProduct.id,
-      productName: modalProduct.productName,
-      brand: modalProduct.brand,
-      size: modalSize,
-      quantity: modalQty,
-      price: parseFloat(modalProduct.supplierPrice),
-      availableStock: maxStock
-    }));
-
-    showToast(`Added ${modalQty}x ${modalProduct.productName}${modalSize !== 'N/A' ? ` (Size: ${modalSize})` : ''} to Bulk Order Cart.`, 'success');
+    showToast(`Added ${itemsToAdd.reduce((sum, item) => sum + item.quantity, 0)} items to Bulk Order Cart.`, 'success');
   };
 
   return (
@@ -427,50 +446,69 @@ const SupplierProducts = () => {
 
       {/* ADD TO BULK ORDER MODAL */}
       {modalProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="glass-panel rounded-2xl w-full max-w-sm shadow-2xl p-6 bg-white dark:bg-slate-900">
-            <h3 className="text-lg font-bold mb-2 text-slate-800 dark:text-slate-100">Add to Bulk Order</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
+          <div className="glass-panel rounded-2xl w-full max-w-lg shadow-2xl p-6 bg-white dark:bg-slate-900 flex flex-col max-h-[85vh]">
+            <h3 className="text-lg font-bold mb-1 text-slate-800 dark:text-slate-100">Add to Bulk Order</h3>
             <p className="text-sm font-semibold mb-4 text-blue-900 dark:text-blue-400">{modalProduct.productName}</p>
             
-            {modalProduct.category?.categoryName !== 'Equipment' && modalProduct.sizes?.length > 0 && (
-              <div className="mb-4">
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Select Size</label>
-                <select
-                  value={modalSize}
-                  onChange={(e) => setModalSize(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 dark:bg-slate-800 dark:border-slate-700 text-sm"
-                >
-                  <option value="" disabled>Select a size...</option>
-                  {modalProduct.sizes.map(s => (
-                    <option key={s.size} value={s.size} disabled={s.stock === 0}>
-                      {s.size} {s.stock === 0 ? '(Out of Stock)' : ''}
-                    </option>
-                  ))}
-                </select>
+            <div className="flex-grow overflow-y-auto pr-1 space-y-4 mb-6">
+              <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Sizes & Stock</label>
+              
+              <div className="space-y-3">
+                {Object.keys(modalQuantities).map((size) => {
+                  const sizeObj = modalProduct.sizes?.find(s => s.size === size);
+                  const maxStock = sizeObj ? sizeObj.stock : modalProduct.availableQuantity;
+                  const isOutOfStock = size !== 'N/A' && maxStock === 0;
+
+                  return (
+                    <div key={size} className="flex gap-4 items-center">
+                      {/* Pill Shape on the Left */}
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-full border flex items-center justify-center font-bold text-sm shadow-inner transition-colors ${
+                        isOutOfStock 
+                          ? 'border-red-200 bg-red-50 text-red-400 dark:border-red-950/40 dark:bg-red-950/20 dark:text-red-800/40 line-through' 
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300'
+                      }`}>
+                        {size}
+                      </div>
+
+                      {/* Quantity Input on the Right */}
+                      <div className="flex-grow relative">
+                        <input
+                          type="number"
+                          min="0"
+                          max={maxStock}
+                          placeholder={isOutOfStock ? "Out of Stock" : "0"}
+                          disabled={isOutOfStock}
+                          value={modalQuantities[size] || ''}
+                          onChange={(e) => handleQuantityChange(size, e.target.value)}
+                          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-950"
+                        />
+                        {!isOutOfStock && maxStock > 0 && (
+                          <span className="absolute right-3 top-3.5 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                            Stock: {maxStock}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
-            
-            <div className="mb-6">
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Quantity</label>
-              <input
-                type="number"
-                min="1"
-                value={modalQty}
-                onChange={(e) => setModalQty(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 dark:bg-slate-800 dark:border-slate-700 text-sm"
-              />
+
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-3 italic">
+                Leave size blank to skip. For edit, sizes update separately.
+              </p>
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={() => setModalProduct(null)}
-                className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                className="flex-grow py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
               >
                 OK
               </button>
               <button
                 onClick={handleAddToCart}
-                className="flex-1 py-2 rounded-xl bg-blue-900 text-white hover:bg-blue-800 text-sm font-semibold shadow-lg shadow-blue-900/20"
+                className="flex-grow py-3 rounded-xl bg-blue-900 text-white hover:bg-blue-800 text-sm font-semibold shadow-lg shadow-blue-900/20 transition-colors"
               >
                 Add to Cart
               </button>
