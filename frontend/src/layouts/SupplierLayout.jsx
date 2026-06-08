@@ -23,7 +23,7 @@ const SupplierLayout = () => {
       <Navbar />
 
       {/* Full-width content — no sidebar */}
-      <main className="flex-grow p-6 overflow-y-auto bg-slate-50 dark:bg-slate-900 transition-colors">
+      <main className="flex-grow p-6 bg-slate-50 dark:bg-slate-900 transition-colors">
         <div className="mx-auto max-w-7xl">
           <Outlet />
         </div>

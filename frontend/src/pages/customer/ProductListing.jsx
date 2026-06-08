@@ -149,7 +149,7 @@ const ProductListing = () => {
       <div className="flex flex-col md:flex-row gap-8">
         
         {/* 1. FILTER SIDEBAR */}
-        <aside className="w-full md:w-64 flex-shrink-0 space-y-6 md:sticky md:top-24 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 pb-4">
+        <aside className="w-full md:w-64 flex-shrink-0 space-y-6 md:sticky md:top-20 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 pb-4">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
             <h2 className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
               <SlidersHorizontal className="h-5 w-5" /> Filters
