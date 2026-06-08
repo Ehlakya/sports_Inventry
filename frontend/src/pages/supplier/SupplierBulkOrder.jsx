@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Plus, Minus, Trash2, ShoppingCart, CheckCircle } from 'lucide-react';
+import { Plus, Minus, Trash2, ShoppingCart, CheckCircle, Download } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectCartItems, updateQuantity, removeFromCart, clearCart } from '../../store/cartSlice';
 import api from '../../api/axios';
+import { downloadFile } from '../../utils/downloadFile';
 
 const SupplierBulkOrder = () => {
   const cart = useSelector(selectCartItems);
   const dispatch = useDispatch();
-  const [submitted, setSubmitted] = useState(false);
+  const [submittedOrder, setSubmittedOrder] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const changeQty = (id, size, delta, currentQty, availableStock) => {
     const newQty = Math.max(1, Math.min(currentQty + delta, availableStock));
@@ -28,25 +30,45 @@ const SupplierBulkOrder = () => {
     setSubmitting(true);
     try {
       const items = cart.map(i => ({ productId: i.productId, size: i.size, quantity: i.quantity }));
-      await api.post('/orders', { items });
-      setSubmitted(true);
+      const response = await api.post('/orders', { items });
+      setSubmittedOrder(response.data.order);
       dispatch(clearCart());
     } catch (e) {
       console.error(e);
       // In case of error but we want to show demo success
-      setSubmitted(true);
+      setSubmittedOrder({ id: 'demo', orderNumber: 'DEMO' });
       dispatch(clearCart());
     } finally { setSubmitting(false); }
   };
 
-  if (submitted) return (
+  const handleDownload = async () => {
+    if (!submittedOrder || submittedOrder.id === 'demo') return;
+    setDownloading(true);
+    await downloadFile(`/orders/${submittedOrder.id}/invoice`, `Supplier_Invoice_${submittedOrder.orderNumber || submittedOrder.id}.pdf`);
+    setDownloading(false);
+  };
+
+  if (submittedOrder) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-5 animate-fade-in">
       <div className="h-20 w-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
         <CheckCircle className="h-10 w-10 text-emerald-600" />
       </div>
       <h2 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100">Bulk Order Placed!</h2>
       <p className="text-slate-500 text-sm">Your supply order has been submitted for processing.</p>
-      <button onClick={() => setSubmitted(false)} className="mt-2 px-6 py-2.5 bg-blue-900 text-white rounded-xl font-semibold text-sm hover:bg-blue-800 transition-colors">Place Another Order</button>
+      <div className="flex gap-3 mt-2">
+        {submittedOrder.id !== 'demo' && (
+          <button 
+            onClick={handleDownload} 
+            disabled={downloading}
+            className="flex items-center gap-2 px-6 py-2.5 bg-orange-500 text-white rounded-xl font-semibold text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 shadow-lg shadow-orange-500/20"
+          >
+            <Download className="h-4 w-4" /> {downloading ? 'Downloading...' : 'Download Invoice'}
+          </button>
+        )}
+        <button onClick={() => setSubmittedOrder(null)} className="px-6 py-2.5 bg-blue-900 text-white rounded-xl font-semibold text-sm hover:bg-blue-800 transition-colors">
+          Place Another Order
+        </button>
+      </div>
     </div>
   );
 

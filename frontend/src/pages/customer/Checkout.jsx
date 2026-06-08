@@ -57,6 +57,7 @@ const Checkout = () => {
       // Navigate to success page, passing state details
       navigate('/order-success', { 
         state: { 
+          orderId: order.id,
           orderNumber: order.orderNumber,
           expectedDeliveryDate,
           deliveryWithin,

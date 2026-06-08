@@ -89,10 +89,11 @@ function App() {
 
               {/* Supplier Routes */}
               <Route path="/supplier" element={<SupplierLayout />}>
-                <Route index element={<SupplierDashboard />} />
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<SupplierDashboard />} />
                 <Route path="products" element={<SupplierProducts />} />
-                <Route path="bulk-order" element={<SupplierBulkOrder />} />
-                <Route path="orders" element={<SupplierOrders />} />
+                <Route path="bulk-orders" element={<SupplierBulkOrder />} />
+                <Route path="order-history" element={<SupplierOrders />} />
                 <Route path="profile" element={<SupplierProfile />} />
               </Route>
 

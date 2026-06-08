@@ -7,6 +7,7 @@ const Order = require('./order.model');
 const OrderItem = require('./orderItem.model');
 const SalesSummary = require('./salesSummary.model');
 const InventoryTransaction = require('./inventoryTransaction.model');
+const Invoice = require('./invoice.model');
 
 // Define Relationships
 
@@ -30,6 +31,10 @@ Order.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'items', onDelete: 'CASCADE' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
 
+// Order <-> Invoice
+Order.hasOne(Invoice, { foreignKey: 'orderId', as: 'invoice', onDelete: 'CASCADE' });
+Invoice.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
+
 // Product <-> OrderItem
 Product.hasMany(OrderItem, { foreignKey: 'productId', as: 'orderItems', onDelete: 'RESTRICT' });
 OrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
@@ -43,5 +48,6 @@ module.exports = {
   Order,
   OrderItem,
   SalesSummary,
-  InventoryTransaction
+  InventoryTransaction,
+  Invoice
 };

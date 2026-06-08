@@ -1,4 +1,4 @@
-const { sequelize, User, Product, ProductSize, Order, OrderItem, SalesSummary, InventoryTransaction } = require('../models');
+const { sequelize, User, Product, ProductSize, Order, OrderItem, SalesSummary, InventoryTransaction, Invoice } = require('../models');
 
 // Helper to format date as "D MMMM YYYY" (e.g. "10 June 2026")
 const formatDate = (date) => {
@@ -137,6 +137,13 @@ const placeOrder = async (userId, userRole, items) => {
     // Create Order Items
     const itemsWithOrderId = itemsToCreate.map(item => ({ ...item, orderId: order.id }));
     await OrderItem.bulkCreate(itemsWithOrderId, { transaction: t });
+
+    // Create Invoice
+    const invoiceNumber = `INV-${orderNumber}`;
+    await Invoice.create({
+      invoiceNumber,
+      orderId: order.id
+    }, { transaction: t });
 
     // Update SalesSummary (Atomic update / Row lock)
     let salesSummary = await SalesSummary.findByPk(1, { transaction: t, lock: true });

@@ -29,18 +29,18 @@ const Sidebar = ({ role, isOpen, toggleSidebar }) => {
 
   // Supplier Navigation Config
   const supplierLinks = [
-    { name: 'Dashboard', path: '/supplier', icon: <LayoutDashboard className="h-5 w-5" />, end: true },
+    { name: 'Dashboard', path: '/supplier/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
     { name: 'Product Catalog', path: '/supplier/products', icon: <Package className="h-5 w-5" /> },
-    { name: 'Bulk Order', path: '/supplier/bulk-order', icon: <ClipboardList className="h-5 w-5" /> },
-    { name: 'Order History', path: '/supplier/orders', icon: <History className="h-5 w-5" /> },
-    { name: 'My Profile', path: '/supplier/profile', icon: <User className="h-5 w-5" /> }
+    { name: 'Bulk Orders', path: '/supplier/bulk-orders', icon: <ClipboardList className="h-5 w-5" /> },
+    { name: 'Order History', path: '/supplier/order-history', icon: <History className="h-5 w-5" /> },
+    { name: 'Profile', path: '/supplier/profile', icon: <User className="h-5 w-5" /> }
   ];
 
   const links = role === 'ADMIN' ? adminLinks : supplierLinks;
 
   const baseSidebarStyle = `
     fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950
-    transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-[calc(100vh-64px)]
+    transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-[64px] lg:h-[calc(100vh-64px)]
   `;
 
   return (

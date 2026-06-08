@@ -6,9 +6,10 @@ import {
 import {
   Package, Users, Truck, ShoppingCart, Layers,
   TrendingUp, IndianRupee, RefreshCw, AlertTriangle,
-  ShoppingBag, Store
+  ShoppingBag, Store, Download
 } from 'lucide-react';
 import api from '../../api/axios';
+import { downloadFile } from '../../utils/downloadFile';
 
 // ─── Static chart data (illustrative trends) ─────────────────────────────────
 const salesData = [
@@ -56,6 +57,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const fetchStats = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -70,6 +72,13 @@ const AdminDashboard = () => {
       setRefreshing(false);
     }
   }, []);
+
+  const handleDownload = async (orderId, orderNumber, isSupplier) => {
+    setDownloadingId(orderId);
+    const prefix = isSupplier ? 'Supplier_Invoice_' : 'Invoice_';
+    await downloadFile(`/orders/${orderId}/invoice`, `${prefix}${orderNumber || orderId}.pdf`);
+    setDownloadingId(null);
+  };
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
@@ -210,7 +219,7 @@ const AdminDashboard = () => {
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/60">
                 <tr>
-                  {['Order #', 'Customer', 'Product', 'Type', 'Amount', 'Status', 'Date'].map(h => (
+                  {['Order #', 'Customer', 'Product', 'Type', 'Amount', 'Status', 'Date', 'Action'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -240,6 +249,16 @@ const AdminDashboard = () => {
                       </td>
                       <td className="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                         {fmtDate(order.createdAt)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleDownload(order.id, order.orderNumber, order.orderType === 'SUPPLIER_ORDER')}
+                          disabled={downloadingId === order.id}
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 disabled:opacity-50 transition-colors"
+                          title="Download Invoice"
+                        >
+                          <Download className="h-3.5 w-3.5" /> {downloadingId === order.id ? 'Wait...' : 'Invoice'}
+                        </button>
                       </td>
                     </tr>
                   );

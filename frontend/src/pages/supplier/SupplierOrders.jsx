@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Clock, CheckCircle, IndianRupee } from 'lucide-react';
+import { Package, Clock, CheckCircle, IndianRupee, Download } from 'lucide-react';
 import api from '../../api/axios';
+import { downloadFile } from '../../utils/downloadFile';
 
 const statusColor = {
   DELIVERED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -13,6 +14,7 @@ const statusColor = {
 const SupplierOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -34,6 +36,12 @@ const SupplierOrders = () => {
   const formatDate = (dateString) => {
     const d = new Date(dateString);
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
+  const handleDownload = async (orderId, orderNumber) => {
+    setDownloadingId(orderId);
+    await downloadFile(`/orders/${orderId}/invoice`, `Supplier_Invoice_${orderNumber || orderId}.pdf`);
+    setDownloadingId(null);
   };
 
   return (
@@ -182,15 +190,24 @@ const SupplierOrders = () => {
               </div>
 
               {/* Delivery Info Footer */}
-              {order.estimatedDeliveryDate && (
-                <div className="bg-slate-50/50 dark:bg-slate-800/30 p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="bg-slate-50/50 dark:bg-slate-800/30 p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                {order.estimatedDeliveryDate ? (
                   <div className="flex items-center gap-2 text-sm">
                     <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span className="font-semibold text-slate-700 dark:text-slate-300">Expected Delivery Date:</span>
                     <span className="font-bold text-slate-800 dark:text-slate-100">{formatDate(order.estimatedDeliveryDate)}</span>
                   </div>
-                </div>
-              )}
+                ) : <div />}
+                
+                <button
+                  onClick={() => handleDownload(order.id, order.orderNumber)}
+                  disabled={downloadingId === order.id}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 text-slate-700 dark:text-slate-300 text-xs font-bold shadow-sm"
+                >
+                  <Download className="h-4 w-4" />
+                  {downloadingId === order.id ? 'Downloading...' : 'Download Invoice'}
+                </button>
+              </div>
 
             </div>
           ))

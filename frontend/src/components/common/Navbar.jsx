@@ -95,10 +95,10 @@ const Navbar = ({ toggleMobileSidebar }) => {
             
             {/* Categories shortcut */}
             <div className="hidden lg:flex items-center gap-6 text-sm font-medium mr-4 text-slate-600 dark:text-slate-300">
-              <Link to="/products" className="hover:text-orange-500 transition-colors">All Products</Link>
-              <Link to="/products?categoryId=1" className="hover:text-orange-500 transition-colors">Footwear</Link>
-              <Link to="/products?categoryId=2" className="hover:text-orange-500 transition-colors">Apparel</Link>
-              <Link to="/products?categoryId=3" className="hover:text-orange-500 transition-colors">Equipment</Link>
+              <Link to={role === 'SUPPLIER' ? '/supplier/products' : '/products'} className="hover:text-orange-500 transition-colors">All Products</Link>
+              <Link to={role === 'SUPPLIER' ? '/supplier/products?categoryId=1' : '/products?categoryId=1'} className="hover:text-orange-500 transition-colors">Footwear</Link>
+              <Link to={role === 'SUPPLIER' ? '/supplier/products?categoryId=2' : '/products?categoryId=2'} className="hover:text-orange-500 transition-colors">Apparel</Link>
+              <Link to={role === 'SUPPLIER' ? '/supplier/products?categoryId=3' : '/products?categoryId=3'} className="hover:text-orange-500 transition-colors">Equipment</Link>
             </div>
 
             {/* Theme Toggle */}
@@ -165,7 +165,7 @@ const Navbar = ({ toggleMobileSidebar }) => {
                         )}
                         {role === 'SUPPLIER' && (
                           <Link
-                            to="/supplier"
+                            to="/supplier/dashboard"
                             onClick={() => setIsProfileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
                           >

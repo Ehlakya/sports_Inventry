@@ -24,6 +24,10 @@ const SupplierProducts = () => {
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [maxPrice, setMaxPrice] = useState(20000);
 
+  // Expand States for Sidebar
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [showAllBrands, setShowAllBrands] = useState(false);
+
   // Modal States
   const [modalProduct, setModalProduct] = useState(null);
   const [modalSize, setModalSize] = useState('');
@@ -161,7 +165,6 @@ const SupplierProducts = () => {
     }));
 
     showToast(`Added ${modalQty}x ${modalProduct.productName}${modalSize !== 'N/A' ? ` (Size: ${modalSize})` : ''} to Bulk Order Cart.`, 'success');
-    setModalProduct(null);
   };
 
   return (
@@ -170,7 +173,7 @@ const SupplierProducts = () => {
       <div className="flex flex-col md:flex-row gap-8">
         
         {/* 1. FILTER SIDEBAR */}
-        <aside className="w-full md:w-64 flex-shrink-0 space-y-6">
+        <aside className="w-full md:w-64 flex-shrink-0 space-y-6 md:sticky md:top-24 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 pb-4">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
             <h2 className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
               <SlidersHorizontal className="h-5 w-5" /> Filters
@@ -208,7 +211,7 @@ const SupplierProducts = () => {
               >
                 All Categories
               </button>
-              {categories.map((cat) => (
+              {(showAllCategories ? categories : categories.slice(0, 4)).map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => { setSelectedCategory(cat.id.toString()); setSearchParams(prev => { prev.set('categoryId', cat.id); return prev; }); }}
@@ -217,6 +220,14 @@ const SupplierProducts = () => {
                   {cat.categoryName}
                 </button>
               ))}
+              {categories.length > 4 && (
+                <button
+                  onClick={() => setShowAllCategories(!showAllCategories)}
+                  className="w-full text-left px-3 py-1.5 rounded-lg text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors mt-1"
+                >
+                  {showAllCategories ? '- Less' : '+ More'}
+                </button>
+              )}
             </div>
           </div>
 
@@ -230,7 +241,7 @@ const SupplierProducts = () => {
               >
                 All Brands
               </button>
-              {brands.map((br) => (
+              {(showAllBrands ? brands : brands.slice(0, 4)).map((br) => (
                 <button
                   key={br}
                   onClick={() => { setSelectedBrand(br); setSearchParams(prev => { prev.set('brand', br); return prev; }); }}
@@ -239,6 +250,14 @@ const SupplierProducts = () => {
                   {br}
                 </button>
               ))}
+              {brands.length > 4 && (
+                <button
+                  onClick={() => setShowAllBrands(!showAllBrands)}
+                  className="w-full text-left px-3 py-1.5 rounded-lg text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors mt-1"
+                >
+                  {showAllBrands ? '- Less' : '+ More'}
+                </button>
+              )}
             </div>
           </div>
 
@@ -447,7 +466,7 @@ const SupplierProducts = () => {
                 onClick={() => setModalProduct(null)}
                 className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
               >
-                Cancel
+                OK
               </button>
               <button
                 onClick={handleAddToCart}

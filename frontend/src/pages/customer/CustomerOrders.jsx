@@ -14,8 +14,10 @@ import {
   TrendingUp,
   ChevronRight,
   AlertCircle,
+  Download
 } from 'lucide-react';
 import api from '../../api/axios';
+import { downloadFile } from '../../utils/downloadFile';
 
 // ─── Status Config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -178,6 +180,14 @@ const OrderItemRow = ({ item }) => {
 // ─── Order Card ───────────────────────────────────────────────────────────────
 const OrderCard = ({ order }) => {
   const [expanded, setExpanded] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async (e) => {
+    e.stopPropagation();
+    setDownloading(true);
+    await downloadFile(`/orders/${order.id}/invoice`, `Invoice_${order.orderNumber || order.id}.pdf`);
+    setDownloading(false);
+  };
 
   return (
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-slate-950">
@@ -261,7 +271,15 @@ const OrderCard = ({ order }) => {
             )}
 
             {/* Amount breakdown summary */}
-            <div className="flex items-center gap-6 text-xs">
+            <div className="flex items-center gap-6 text-xs flex-wrap justify-end">
+              <button
+                onClick={handleDownload}
+                disabled={downloading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 text-slate-700 dark:text-slate-300 font-semibold"
+              >
+                <Download className="h-4 w-4" />
+                {downloading ? 'Downloading...' : 'Download Invoice'}
+              </button>
               <div className="text-right">
                 <p className="text-slate-400 font-semibold">Subtotal</p>
                 <p className="font-bold text-slate-700 dark:text-slate-300">₹{fmt(order.subtotal)}</p>
