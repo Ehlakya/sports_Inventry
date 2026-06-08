@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Mail, Lock, User, Phone, MapPin, UserPlus, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Phone, MapPin, UserPlus, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 import apiClient from '../../api/axios';
 import SportsBackground from '../../components/common/SportsBackground';
@@ -11,6 +11,8 @@ const Register = () => {
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: {
@@ -69,7 +71,7 @@ const Register = () => {
           <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent uppercase tracking-wider">
             Create Account
           </h1>
-          <p className="text-xs text-slate-400">Join Antigravity Sports community today</p>
+          <p className="text-xs text-slate-400">Join Full Sport's community today</p>
         </div>
 
         {/* Form */}
@@ -77,7 +79,7 @@ const Register = () => {
           
           {/* Full Name */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Full Name</label>
+            <label className="text-xs font-semibold text-slate-700">Full Name</label>
             <div className="relative">
               <input
                 type="text"
@@ -91,7 +93,7 @@ const Register = () => {
 
           {/* Username */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Username</label>
+            <label className="text-xs font-semibold text-slate-700">Username</label>
             <div className="relative">
               <input
                 type="text"
@@ -105,7 +107,7 @@ const Register = () => {
 
           {/* Email */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Email Address</label>
+            <label className="text-xs font-semibold text-slate-700">Email Address</label>
             <div className="relative">
               <input
                 type="email"
@@ -113,7 +115,7 @@ const Register = () => {
                   required: 'Email is required',
                   pattern: { value: /^\S+@\S+$/i, message: 'Invalid email format' }
                 })}
-                placeholder="johndoe@gmail.com"
+                placeholder="EMAIL_ADDRESS"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
               />
               <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
@@ -122,54 +124,80 @@ const Register = () => {
 
           {/* Password */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Password</label>
+            <label className="text-xs font-semibold text-slate-700">Password</label>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 {...register('password', { 
                   required: 'Password is required'
                 })}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
+                className="w-full pl-10 pr-10 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
               />
               <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute right-3 top-2.5 h-5 w-5 text-slate-400 hover:text-slate-200 transition-colors focus:outline-none"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
 
           {/* Confirm Password */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Confirm Password</label>
+            <label className="text-xs font-semibold text-slate-700">Confirm Password</label>
             <div className="relative">
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 {...register('confirmPassword', { 
                   required: 'Confirm Password is required',
                   validate: value => value === watch('password') || 'Passwords do not match.'
                 })}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
+                className="w-full pl-10 pr-10 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
               />
               <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(prev => !prev)}
+                className="absolute right-3 top-2.5 h-5 w-5 text-slate-400 hover:text-slate-200 transition-colors focus:outline-none"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
 
           {/* Phone */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Phone Number</label>
+            <label className="text-xs font-semibold text-slate-700">Phone Number</label>
             <div className="relative">
               <input
                 type="tel"
-                {...register('phone', { required: 'Phone Number is required' })}
-                placeholder="+91 98765 43210"
+                {...register('phone', {
+                  required: 'Phone Number is required',
+                  pattern: { value: /^\d{10}$/, message: 'Enter a valid 10-digit phone number' },
+                  minLength: { value: 10, message: 'Phone number must be exactly 10 digits' },
+                  maxLength: { value: 10, message: 'Phone number must be exactly 10 digits' },
+                })}
+                maxLength={10}
+                onInput={e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); }}
+                placeholder="10-digit mobile number"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-650"
               />
               <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
             </div>
+            {errors.phone && (
+              <span className="text-[10px] text-red-400 font-semibold">{errors.phone.message}</span>
+            )}
           </div>
 
           {/* Address */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Address</label>
+            <label className="text-xs font-semibold text-slate-700">Address</label>
             <div className="relative">
               <textarea
                 rows="2"

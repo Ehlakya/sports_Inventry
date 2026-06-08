@@ -55,6 +55,9 @@ const AdminSuppliers = () => {
     if (!form.name || !form.email || !form.password) {
       showToast('Name, email, and password are required.', 'error'); return;
     }
+    if (form.phone && !/^\d{10}$/.test(form.phone)) {
+      showToast('Phone number must be exactly 10 digits.', 'error'); return;
+    }
     setSubmitting(true);
     try {
       await api.post('/users/suppliers', form);
@@ -97,7 +100,7 @@ const AdminSuppliers = () => {
     { icon: User, label: 'Full Name', key: 'name', type: 'text', required: true, placeholder: 'Supplier company name' },
     { icon: Mail, label: 'Email Address', key: 'email', type: 'email', required: true, placeholder: 'supplier@company.com' },
     { icon: Lock, label: modal === 'edit' ? 'New Password (leave blank to keep)' : 'Password', key: 'password', type: 'password', required: modal === 'add', placeholder: modal === 'edit' ? 'Leave blank to keep current' : 'Min 6 characters' },
-    { icon: Phone, label: 'Phone Number', key: 'phone', type: 'tel', required: false, placeholder: '+91 9876543210' },
+    { icon: Phone, label: 'Phone Number', key: 'phone', type: 'tel', required: false, placeholder: '10-digit mobile number' },
     { icon: MapPin, label: 'Address', key: 'address', type: 'text', required: false, placeholder: 'City, State' },
   ];
 
@@ -230,6 +233,8 @@ const AdminSuppliers = () => {
                       required={required}
                       value={form[key]}
                       onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
+                      onInput={key === 'phone' ? (e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); }) : undefined}
+                      maxLength={key === 'phone' ? 10 : undefined}
                       placeholder={placeholder}
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/40"
                     />

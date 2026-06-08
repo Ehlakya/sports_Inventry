@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { Mail, Lock, LogIn, Loader2 } from 'lucide-react';
+import { Mail, Lock, LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 import { loginStart, loginSuccess, loginFailure } from '../../store/authSlice';
 import apiClient from '../../api/axios';
@@ -14,6 +14,7 @@ const Login = () => {
   const { showToast } = useToast();
   const { isAuthenticated, role } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // IMPORTANT: useForm must be called before any conditional returns (Rules of Hooks)
   const { register, handleSubmit, formState: { errors } } = useForm({
@@ -103,15 +104,23 @@ const Login = () => {
               <div className="relative">
                 <input
                   id="login-password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   {...register('password', {
                     required: 'Password is required',
                     minLength: { value: 6, message: 'Password must be at least 6 characters' }
                   })}
                   placeholder="Enter Password"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-500"
+                  className="w-full pl-10 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-500"
                 />
                 <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  className="absolute right-3 top-3 h-5 w-5 text-slate-400 hover:text-slate-200 transition-colors focus:outline-none"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
               {errors.password && (
                 <span className="text-[10px] text-red-400 font-semibold">{errors.password.message}</span>
