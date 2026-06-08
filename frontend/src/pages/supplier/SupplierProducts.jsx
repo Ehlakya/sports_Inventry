@@ -461,7 +461,7 @@ const SupplierProducts = () => {
                   const isOutOfStock = size !== 'N/A' && maxStock === 0;
 
                   return (
-                    <div key={size} className="flex gap-4 items-center">
+                    <div key={size} className="flex gap-4 items-center justify-between">
                       {/* Pill Shape on the Left */}
                       <div className={`flex-shrink-0 w-12 h-12 rounded-full border flex items-center justify-center font-bold text-sm shadow-inner transition-colors ${
                         isOutOfStock 
@@ -471,23 +471,25 @@ const SupplierProducts = () => {
                         {size}
                       </div>
 
+                      {/* Stock Text in the Middle */}
+                      <div className="flex-grow text-center">
+                        <span className={`text-xs font-bold ${isOutOfStock ? 'text-red-500/70 dark:text-red-400/50' : 'text-slate-500 dark:text-slate-400'}`}>
+                          {isOutOfStock ? 'Out of Stock' : `Stock: ${maxStock}`}
+                        </span>
+                      </div>
+
                       {/* Quantity Input on the Right */}
-                      <div className="flex-grow relative">
+                      <div className="w-36 flex-shrink-0">
                         <input
                           type="number"
                           min="0"
                           max={maxStock}
-                          placeholder={isOutOfStock ? "Out of Stock" : "0"}
+                          placeholder="0"
                           disabled={isOutOfStock}
                           value={modalQuantities[size] || ''}
                           onChange={(e) => handleQuantityChange(size, e.target.value)}
-                          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-950"
+                          className="w-full px-4 py-3 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-950"
                         />
-                        {!isOutOfStock && maxStock > 0 && (
-                          <span className="absolute right-3 top-3.5 text-[10px] font-bold text-slate-400 dark:text-slate-500">
-                            Stock: {maxStock}
-                          </span>
-                        )}
                       </div>
                     </div>
                   );
