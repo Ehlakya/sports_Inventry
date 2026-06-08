@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/common/Navbar';
-import Sidebar from '../components/common/Sidebar';
 import SportsBackground from '../components/common/SportsBackground';
 
 const SupplierLayout = () => {
   const { isAuthenticated, role } = useSelector((state) => state.auth);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Route Guarding: Protect Supplier layout
   if (!isAuthenticated) {
@@ -18,29 +16,18 @@ const SupplierLayout = () => {
     return <Navigate to="/" replace />;
   }
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <SportsBackground variant="supplier" />
-      {/* Universal header */}
-      <Navbar toggleMobileSidebar={toggleSidebar} />
+      {/* Navbar handles all supplier navigation via profile dropdown */}
+      <Navbar />
 
-      <div className="flex flex-grow items-stretch">
-        {/* Supplier Navigation Sidebar */}
-        <Sidebar 
-          role="SUPPLIER" 
-          isOpen={isSidebarOpen} 
-          toggleSidebar={toggleSidebar} 
-        />
-
-        {/* Console Workspace Area */}
-        <main className="flex-grow p-6 overflow-y-auto bg-slate-50 dark:bg-slate-900 transition-colors">
+      {/* Full-width content — no sidebar */}
+      <main className="flex-grow p-6 overflow-y-auto bg-slate-50 dark:bg-slate-900 transition-colors">
+        <div className="mx-auto max-w-7xl">
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };
