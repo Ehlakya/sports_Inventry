@@ -23,6 +23,12 @@ ProductSize.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 Product.hasMany(InventoryTransaction, { foreignKey: 'productId', as: 'transactions', onDelete: 'CASCADE' });
 InventoryTransaction.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 
+// Order/User <-> InventoryTransaction
+Order.hasMany(InventoryTransaction, { foreignKey: 'orderId', as: 'inventoryTransactions', onDelete: 'SET NULL' });
+InventoryTransaction.belongsTo(Order, { foreignKey: 'orderId', as: 'order' });
+User.hasMany(InventoryTransaction, { foreignKey: 'userId', as: 'inventoryTransactions', onDelete: 'SET NULL' });
+InventoryTransaction.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 // User <-> Order
 User.hasMany(Order, { foreignKey: 'userId', as: 'orders', onDelete: 'RESTRICT' });
 Order.belongsTo(User, { foreignKey: 'userId', as: 'user' });

@@ -29,6 +29,12 @@ const STATUS_CFG = {
   CANCELLED:  { label: 'Cancelled',  cls: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' },
 };
 
+const ORDER_FILTERS = [
+  { label: 'All Orders', value: 'ALL' },
+  { label: 'Customer Orders', value: 'CUSTOMER_ORDER' },
+  { label: 'Supplier Orders', value: 'SUPPLIER_ORDER' },
+];
+
 const fmt = (n) => Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 const fmtCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -58,6 +64,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [orderFilter, setOrderFilter] = useState('ALL');
 
   const fetchStats = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -95,6 +102,9 @@ const AdminDashboard = () => {
   ];
 
   const recentOrders = s.recentOrders || [];
+  const filteredRecentOrders = orderFilter === 'ALL'
+    ? recentOrders
+    : recentOrders.filter(order => order.orderType === orderFilter);
   const lowStockAlerts = s.lowStockAlerts || [];
 
   return (
@@ -203,13 +213,27 @@ const AdminDashboard = () => {
 
       {/* Recent Orders (Live from DB) */}
       <div className="glass-card rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-bold text-slate-700 dark:text-slate-200">Recent Orders</h2>
-          <span className="text-xs text-slate-400 font-medium">Last 10 orders · All types</span>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-5">
+          <div>
+            <h2 className="text-base font-bold text-slate-700 dark:text-slate-200">Recent Orders</h2>
+            <span className="text-xs text-slate-400 font-medium">Last 10 orders · filter by source</span>
+          </div>
+          <div className="flex rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900">
+            {ORDER_FILTERS.map(filter => (
+              <button
+                key={filter.value}
+                type="button"
+                onClick={() => setOrderFilter(filter.value)}
+                className={`px-3 py-2 text-xs font-bold transition-colors ${orderFilter === filter.value ? 'bg-blue-900 text-white' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
         {loading ? (
           <div className="space-y-2">{Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
-        ) : recentOrders.length === 0 ? (
+        ) : filteredRecentOrders.length === 0 ? (
           <div className="flex flex-col items-center py-10 text-center gap-2 text-slate-400">
             <ShoppingCart className="h-8 w-8 text-slate-300" />
             <p className="text-sm font-medium">No orders placed yet</p>
@@ -219,25 +243,40 @@ const AdminDashboard = () => {
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/60">
                 <tr>
-                  {['Order #', 'Customer', 'Product', 'Type', 'Amount', 'Status', 'Date', 'Action'].map(h => (
+                  {['Order #', 'Product', 'Quantity', 'User Type', 'Order Source', 'Amount', 'Status', 'Date', 'Action'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {recentOrders.map(order => {
+                {filteredRecentOrders.map(order => {
                   const cfg = STATUS_CFG[order.orderStatus] || STATUS_CFG.PENDING;
+                  const isSupplierOrder = order.orderType === 'SUPPLIER_ORDER';
+                  const userType = order.userType || (isSupplierOrder ? 'Supplier' : 'Customer');
+                  const sourceDetails = order.sourceDetails || {};
                   return (
                     <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="px-4 py-3 font-mono font-semibold text-blue-900 dark:text-blue-400 whitespace-nowrap">
                         {order.orderNumber || `#${order.id}`}
                       </td>
-                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300 max-w-[140px] truncate">{order.customerName}</td>
                       <td className="px-4 py-3 text-slate-600 dark:text-slate-400 max-w-[160px] truncate">{order.productName}</td>
+                      <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{order.quantity || order.items?.[0]?.quantity || '-'}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${order.orderType === 'CUSTOMER_ORDER' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400'}`}>
-                          {order.orderType === 'CUSTOMER_ORDER' ? 'Customer' : 'Supplier'}
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isSupplierOrder ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'}`}>
+                          {userType}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 min-w-[180px]">
+                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300">{order.orderSource || (isSupplierOrder ? 'Supplier Order' : 'Customer Order')}</div>
+                        {isSupplierOrder ? (
+                          <div className="text-[10px] text-slate-400">
+                            {sourceDetails.supplierName || order.orderedByName || order.customerName || 'Supplier'} · ID {sourceDetails.supplierId || '-'}
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-slate-400">
+                            {(sourceDetails.customerName || order.orderedByName || order.customerName || 'Customer')} · {sourceDetails.username || 'No username'} · {sourceDetails.phoneNumber || 'No phone'}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                         {fmtCurrency(order.totalAmount)}

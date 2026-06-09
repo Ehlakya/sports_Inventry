@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, Loader2, CreditCard, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Loader2, CreditCard, ShieldCheck, QrCode, Smartphone } from 'lucide-react';
 import { selectCartItems, selectCartSubtotal, clearCart } from '../../store/cartSlice';
 import { useToast } from '../../components/common/Toast';
 import apiClient from '../../api/axios';
+import phonePeQR from '../../assets/phonepe-qr.jpg';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Checkout = () => {
   const subtotal = useSelector(selectCartSubtotal);
 
   const [placing, setPlacing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('cod'); // 'cod' | 'phonepe'
 
   // Customer GST: 18%
   const gstRate = 0.18;
@@ -115,10 +117,32 @@ const Checkout = () => {
 
               {/* Phone */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-400">Contact Number</label>
+                <label className="text-xs font-semibold text-slate-400">
+                  Contact Number
+                  <span className="ml-1 text-slate-300 dark:text-slate-600 font-normal">(10 digits)</span>
+                </label>
                 <input
                   type="tel"
-                  {...register('phone', { required: 'Phone is required' })}
+                  maxLength={10}
+                  {...register('phone', {
+                    required: 'Phone number is required',
+                    pattern: {
+                      value: /^[0-9]{10}$/,
+                      message: 'Enter a valid 10-digit phone number'
+                    }
+                  })}
+                  onKeyDown={(e) => {
+                    // Allow: backspace, delete, tab, escape, arrows, home, end
+                    const allowedKeys = ['Backspace','Delete','Tab','Escape','ArrowLeft','ArrowRight','Home','End'];
+                    if (allowedKeys.includes(e.key)) return;
+                    // Block anything that isn't a digit
+                    if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+                  }}
+                  onInput={(e) => {
+                    // Extra safety: strip non-digits and cap at 10
+                    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  }}
+                  placeholder="e.g. 9876543210"
                   className="w-full px-4 py-2 border border-slate-200 dark:border-slate-800 dark:bg-slate-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
                 />
                 {errors.phone && <span className="text-[10px] text-red-400 font-semibold">{errors.phone.message}</span>}
@@ -137,18 +161,112 @@ const Checkout = () => {
             </div>
           </div>
 
-          {/* Secure Guarantee */}
+          {/* Payment Gateway */}
           <div className="border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 rounded-2xl p-6 space-y-4 shadow-sm">
             <h2 className="text-base font-black uppercase tracking-tight border-b border-slate-100 dark:border-slate-900 pb-3">
-              Payment Gateway
+              Payment Method
             </h2>
-            <div className="flex gap-4 items-start p-4 rounded-xl border border-slate-100 bg-slate-50 dark:border-slate-900 dark:bg-slate-900/40">
-              <CreditCard className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1 text-xs">
-                <h4 className="font-bold">COD / Cash On Delivery (Default)</h4>
-                <p className="text-slate-400 leading-relaxed">Payments are securely captured at doorsteps upon physical verification of items.</p>
-              </div>
+
+            {/* Payment Toggle Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* COD Option */}
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('cod')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                  paymentMethod === 'cod'
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-500/10'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <CreditCard className={`h-6 w-6 ${paymentMethod === 'cod' ? 'text-orange-500' : 'text-slate-400'}`} />
+                <span className={`text-xs font-bold ${paymentMethod === 'cod' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-500'}`}>
+                  Cash on Delivery
+                </span>
+                {paymentMethod === 'cod' && (
+                  <span className="text-[10px] font-semibold text-orange-500 bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 rounded-full">Selected</span>
+                )}
+              </button>
+
+              {/* PhonePe Option */}
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('phonepe')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                  paymentMethod === 'phonepe'
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-500/10'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <Smartphone className={`h-6 w-6 ${paymentMethod === 'phonepe' ? 'text-purple-500' : 'text-slate-400'}`} />
+                <span className={`text-xs font-bold ${paymentMethod === 'phonepe' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-500'}`}>
+                  PhonePe / UPI
+                </span>
+                {paymentMethod === 'phonepe' && (
+                  <span className="text-[10px] font-semibold text-purple-500 bg-purple-100 dark:bg-purple-500/20 px-2 py-0.5 rounded-full">Selected</span>
+                )}
+              </button>
             </div>
+
+            {/* COD Detail */}
+            {paymentMethod === 'cod' && (
+              <div className="flex gap-4 items-start p-4 rounded-xl border border-orange-100 bg-orange-50/50 dark:border-orange-900/30 dark:bg-orange-500/5 transition-all duration-300">
+                <CreditCard className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1 text-xs">
+                  <h4 className="font-bold">Cash On Delivery</h4>
+                  <p className="text-slate-400 leading-relaxed">Payment is securely captured at your doorstep upon physical verification of items.</p>
+                </div>
+              </div>
+            )}
+
+            {/* PhonePe QR Detail */}
+            {paymentMethod === 'phonepe' && (
+              <div className="flex flex-col items-center gap-4 p-5 rounded-xl border border-purple-200 dark:border-purple-800/40 bg-gradient-to-b from-purple-50 to-white dark:from-purple-900/10 dark:to-slate-950 transition-all duration-300">
+                {/* PhonePe Header */}
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center shadow-md shadow-purple-500/30">
+                    <span className="text-white font-black text-sm">₱</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-purple-700 dark:text-purple-400">PhonePe</p>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">UPI Accepted Here</p>
+                  </div>
+                </div>
+
+                {/* QR Code Image */}
+                <div className="relative">
+                  <div className="absolute -inset-2 bg-gradient-to-br from-purple-400 to-purple-700 rounded-2xl opacity-20 blur-md"></div>
+                  <div className="relative bg-white rounded-xl p-3 shadow-lg border border-purple-100">
+                    <img
+                      src={phonePeQR}
+                      alt="PhonePe QR Code - EHLAKYA SHREE.G"
+                      className="w-52 h-52 object-contain rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Instructions */}
+                <div className="text-center space-y-1">
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">EHLAKYA SHREE.G</p>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Open PhonePe app → Scan &amp; Pay → Enter amount &amp; confirm
+                  </p>
+                </div>
+
+                {/* Steps */}
+                <div className="w-full grid grid-cols-3 gap-2 text-center">
+                  {['Open PhonePe', 'Scan QR', 'Pay & Done'].map((step, i) => (
+                    <div key={i} className="flex flex-col items-center gap-1">
+                      <div className="w-6 h-6 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow-sm">
+                        {i + 1}
+                      </div>
+                      <span className="text-[10px] font-semibold text-slate-500">{step}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold justify-center">
               <ShieldCheck className="h-4 w-4 text-emerald-500" /> SECURE CHECKOUT GUARANTEED BY ANTIGRAVITY SPORTS
             </div>

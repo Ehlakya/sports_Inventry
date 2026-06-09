@@ -32,6 +32,7 @@ const placeOrder = async (userId, userRole, items) => {
     const orderNumber = `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
     let subtotal = 0;
     const itemsToCreate = [];
+    const inventoryTransactions = [];
 
     // Loop through items to validate and adjust inventory
     for (const item of items) {
@@ -91,14 +92,19 @@ const placeOrder = async (userId, userRole, items) => {
         await product.save({ transaction: t });
       }
 
-      // Create Inventory Transaction Record
       const transactionType = orderType === 'CUSTOMER_ORDER' ? 'CUSTOMER_ORDER_OUTFLOW' : 'SUPPLIER_ORDER_OUTFLOW';
-      await InventoryTransaction.create({
+      const orderedBy = orderType === 'CUSTOMER_ORDER' ? 'Customer' : 'Supplier';
+      const orderAction = orderType === 'CUSTOMER_ORDER' ? 'purchased' : 'ordered';
+      inventoryTransactions.push({
         productId,
+        userId,
+        quantity,
         quantityBefore,
         quantityAfter,
-        transactionType
-      }, { transaction: t });
+        transactionType,
+        orderedBy,
+        notes: `${orderedBy} ${orderAction} ${quantity} ${product.productName}`
+      });
 
       // Select price based on role
       const price = orderType === 'CUSTOMER_ORDER' ? product.customerPrice : product.supplierPrice;
@@ -137,6 +143,10 @@ const placeOrder = async (userId, userRole, items) => {
     // Create Order Items
     const itemsWithOrderId = itemsToCreate.map(item => ({ ...item, orderId: order.id }));
     await OrderItem.bulkCreate(itemsWithOrderId, { transaction: t });
+
+    // Create Inventory Transaction Records with Order linkage
+    const transactionsWithOrderId = inventoryTransactions.map(entry => ({ ...entry, orderId: order.id }));
+    await InventoryTransaction.bulkCreate(transactionsWithOrderId, { transaction: t });
 
     // Create Invoice
     const invoiceNumber = `INV-${orderNumber}`;

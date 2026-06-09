@@ -1,20 +1,66 @@
-const { InventoryTransaction, SalesSummary, Product } = require('../models');
+const { Op } = require('sequelize');
+const { InventoryTransaction, SalesSummary, Product, Order, User } = require('../models');
 
 const getTransactionHistory = async (req, res, next) => {
   try {
-    const transactions = await InventoryTransaction.findAll({
+    const { search = '', page = 1, limit = 10, orderedBy = 'ALL' } = req.query;
+    const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+    const pageSize = Math.max(parseInt(limit, 10) || 10, 1);
+    const where = {};
+
+    if (orderedBy === 'Customer' || orderedBy === 'Supplier') {
+      where.orderedBy = orderedBy;
+    }
+
+    const productInclude = {
+      model: Product,
+      as: 'product',
+      attributes: ['productName', 'brand'],
+      ...(search ? { where: { productName: { [Op.iLike]: `%${search}%` } } } : {})
+    };
+
+    const { rows: transactions, count } = await InventoryTransaction.findAndCountAll({
+      where,
       include: [
+        productInclude,
         {
-          model: Product,
-          as: 'product',
-          attributes: ['productName', 'brand']
+          model: Order,
+          as: 'order',
+          attributes: ['id', 'orderNumber', 'orderType']
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'username', 'phone', 'role']
         }
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      offset: (pageNumber - 1) * pageSize,
+      limit: pageSize,
+      distinct: true
     });
 
+    const data = transactions.map(transaction => ({
+      id: transaction.id,
+      orderNumber: transaction.order?.orderNumber || null,
+      productName: transaction.product?.productName || 'Unknown Product',
+      quantity: transaction.quantity || Math.abs((transaction.quantityBefore || 0) - (transaction.quantityAfter || 0)),
+      stockBefore: transaction.quantityBefore,
+      stockAfter: transaction.quantityAfter,
+      transactionDate: transaction.createdAt,
+      transactionType: transaction.transactionType,
+      orderedBy: transaction.orderedBy || (transaction.order?.orderType === 'SUPPLIER_ORDER' ? 'Supplier' : 'Customer'),
+      notes: transaction.notes,
+      order: transaction.order,
+      user: transaction.user
+    }));
+
     res.status(200).json({
-      transactions
+      transactions: data,
+      data: {
+        rows: data,
+        count
+      }
     });
   } catch (error) {
     next(error);

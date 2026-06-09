@@ -1,6 +1,26 @@
 const orderService = require('../services/order.service');
 const { Order, OrderItem, Product, Category, User } = require('../models');
 
+const getOrderSourceDetails = (order) => {
+  const isSupplierOrder = order.orderType === 'SUPPLIER_ORDER';
+  const user = order.user || {};
+
+  return {
+    userType: isSupplierOrder ? 'Supplier' : 'Customer',
+    orderSource: isSupplierOrder ? 'Supplier Order' : 'Customer Order',
+    sourceDetails: isSupplierOrder
+      ? {
+          supplierName: user.name || null,
+          supplierId: user.id || order.userId
+        }
+      : {
+          customerName: user.name || null,
+          username: user.username || null,
+          phoneNumber: user.phone || null
+        }
+  };
+};
+
 const createOrder = async (req, res, next) => {
   try {
     const { items } = req.body;
@@ -51,10 +71,14 @@ const getOrderHistory = async (req, res, next) => {
       queryOptions.where = { userId };
     } else {
       // Admin also gets the user details
-      queryOptions.include.push({ model: User, as: 'user', attributes: ['name', 'email', 'role'] });
+      queryOptions.include.push({ model: User, as: 'user', attributes: ['id', 'name', 'username', 'email', 'phone', 'role'] });
     }
 
-    const orders = await Order.findAll(queryOptions);
+    const orderRows = await Order.findAll(queryOptions);
+    const orders = orderRows.map(order => ({
+      ...order.toJSON(),
+      ...getOrderSourceDetails(order)
+    }));
 
     res.status(200).json({
       orders
@@ -84,7 +108,7 @@ const getOrderById = async (req, res, next) => {
             }
           ]
         },
-        { model: User, as: 'user', attributes: ['name', 'email', 'phone', 'address', 'role'] }
+        { model: User, as: 'user', attributes: ['id', 'name', 'username', 'email', 'phone', 'address', 'role'] }
       ]
     });
 
@@ -98,7 +122,10 @@ const getOrderById = async (req, res, next) => {
     }
 
     res.status(200).json({
-      order
+      order: {
+        ...order.toJSON(),
+        ...getOrderSourceDetails(order)
+      }
     });
   } catch (error) {
     next(error);

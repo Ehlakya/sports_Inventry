@@ -59,7 +59,7 @@ const getAdminDashboard = async () => {
     order: [['createdAt', 'DESC']],
     limit: 10,
     include: [
-      { model: User, as: 'user', attributes: ['name', 'email'] },
+      { model: User, as: 'user', attributes: ['id', 'name', 'username', 'email', 'phone', 'role'] },
       {
         model: OrderItem,
         as: 'items',
@@ -69,16 +69,33 @@ const getAdminDashboard = async () => {
     ]
   });
 
-  const recentOrders = recentOrderRows.map(o => ({
-    id: o.id,
-    orderNumber: o.orderNumber,
-    customerName: o.user ? o.user.name : 'Unknown',
-    productName: o.items && o.items[0] ? o.items[0].product?.productName : 'N/A',
-    totalAmount: parseFloat(o.totalAmount),
-    orderStatus: o.orderStatus,
-    orderType: o.orderType,
-    createdAt: o.createdAt
-  }));
+  const recentOrders = recentOrderRows.map(o => {
+    const isSupplierOrder = o.orderType === 'SUPPLIER_ORDER';
+    return {
+      id: o.id,
+      orderNumber: o.orderNumber,
+      customerName: o.user ? o.user.name : 'Unknown',
+      orderedByName: o.user ? o.user.name : 'Unknown',
+      productName: o.items && o.items[0] ? o.items[0].product?.productName : 'N/A',
+      quantity: o.items && o.items[0] ? o.items[0].quantity : null,
+      totalAmount: parseFloat(o.totalAmount),
+      orderStatus: o.orderStatus,
+      orderType: o.orderType,
+      userType: isSupplierOrder ? 'Supplier' : 'Customer',
+      orderSource: isSupplierOrder ? 'Supplier Order' : 'Customer Order',
+      sourceDetails: isSupplierOrder
+        ? {
+            supplierName: o.user?.name || null,
+            supplierId: o.user?.id || o.userId
+          }
+        : {
+            customerName: o.user?.name || null,
+            username: o.user?.username || null,
+            phoneNumber: o.user?.phone || null
+          },
+      createdAt: o.createdAt
+    };
+  });
 
   return {
     totalProducts,

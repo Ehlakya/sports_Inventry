@@ -6,6 +6,7 @@ const { authenticateJWT, authorizeRoles } = require('../middleware/auth.middlewa
 // All inventory routes require ADMIN privileges
 router.use(authenticateJWT, authorizeRoles('ADMIN'));
 
+router.get('/', inventoryController.getTransactionHistory);
 router.get('/transactions', inventoryController.getTransactionHistory);
 router.get('/sales-summary', inventoryController.getSalesSummary);
 
