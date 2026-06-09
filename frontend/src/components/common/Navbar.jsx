@@ -78,17 +78,8 @@ const Navbar = ({ toggleMobileSidebar }) => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4">
 
-          {/* ── Logo & mobile sidebar toggle (non-supplier only) ── */}
+          {/* ── Logo ── */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Mobile sidebar toggle — only for ADMIN (suppliers have no sidebar) */}
-            {role === 'ADMIN' && (
-              <button
-                onClick={toggleMobileSidebar}
-                className="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 lg:hidden"
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-            )}
             <Link to={isSupplier ? '/supplier/dashboard' : '/'} className="flex items-center gap-2">
               <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-900 to-orange-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-orange-400">
                 FULL<span className="text-slate-800 dark:text-slate-200">SPORTS</span>

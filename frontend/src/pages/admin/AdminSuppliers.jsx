@@ -140,9 +140,12 @@ const AdminSuppliers = () => {
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 dark:bg-slate-800/60">
             <tr>
-              {['Supplier', 'Email', 'Phone', 'Address', 'Joined', 'Actions'].map(h => (
+              {['Supplier', 'Email', 'Phone', 'Address'].map(h => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
               ))}
+              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.3)]">
+                Joined & Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -155,7 +158,7 @@ const AdminSuppliers = () => {
               : suppliers.length === 0
               ? <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">No suppliers found.</td></tr>
               : suppliers.map(s => (
-                  <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                  <tr key={s.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-full bg-blue-900 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
@@ -167,23 +170,25 @@ const AdminSuppliers = () => {
                     <td className="px-4 py-3 text-slate-500">{s.email}</td>
                     <td className="px-4 py-3 text-slate-500">{s.phone || '—'}</td>
                     <td className="px-4 py-3 text-slate-500">{s.address || '—'}</td>
-                    <td className="px-4 py-3 text-slate-400 text-xs">{s.createdAt?.slice(0, 10)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openEdit(s)}
-                          title="Edit supplier"
-                          className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-700 dark:text-blue-400 transition-colors"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => openDelete(s)}
-                          title="Delete supplier"
-                          className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                    <td className="px-4 py-3 sticky right-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors z-10 shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.3)]">
+                      <div className="flex items-center gap-4">
+                        <span className="text-slate-400 text-xs whitespace-nowrap">{s.createdAt?.slice(0, 10)}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => openEdit(s)}
+                            title="Edit supplier"
+                            className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-400 transition-colors"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => openDelete(s)}
+                            title="Delete supplier"
+                            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>

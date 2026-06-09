@@ -243,9 +243,12 @@ const AdminDashboard = () => {
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/60">
                 <tr>
-                  {['Order #', 'Product', 'Quantity', 'User Type', 'Order Source', 'Amount', 'Status', 'Date', 'Action'].map(h => (
+                  {['Order #', 'Product', 'Quantity', 'User Type', 'Order Source', 'Amount', 'Status'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.3)]">
+                    Date & Action
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -254,8 +257,11 @@ const AdminDashboard = () => {
                   const isSupplierOrder = order.orderType === 'SUPPLIER_ORDER';
                   const userType = order.userType || (isSupplierOrder ? 'Supplier' : 'Customer');
                   const sourceDetails = order.sourceDetails || {};
+                  const name = sourceDetails.customerName || sourceDetails.supplierName || order.orderedByName || order.customerName || 'Unknown';
+                  const username = sourceDetails.username || '—';
+                  const phone = sourceDetails.phoneNumber || '—';
                   return (
-                    <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                    <tr key={order.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                       <td className="px-4 py-3 font-mono font-semibold text-blue-900 dark:text-blue-400 whitespace-nowrap">
                         {order.orderNumber || `#${order.id}`}
                       </td>
@@ -267,16 +273,20 @@ const AdminDashboard = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 min-w-[180px]">
-                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300">{order.orderSource || (isSupplierOrder ? 'Supplier Order' : 'Customer Order')}</div>
-                        {isSupplierOrder ? (
-                          <div className="text-[10px] text-slate-400">
-                            {sourceDetails.supplierName || order.orderedByName || order.customerName || 'Supplier'} · ID {sourceDetails.supplierId || '-'}
-                          </div>
-                        ) : (
-                          <div className="text-[10px] text-slate-400">
-                            {(sourceDetails.customerName || order.orderedByName || order.customerName || 'Customer')} · {sourceDetails.username || 'No username'} · {sourceDetails.phoneNumber || 'No phone'}
-                          </div>
-                        )}
+                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          {order.orderSource || (isSupplierOrder ? 'Supplier Order' : 'Customer Order')}
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-0.5 font-medium">
+                          <span className="text-slate-800 dark:text-slate-200 font-bold">{name}</span>
+                          {isSupplierOrder ? (
+                            <span> · ID: {sourceDetails.supplierId || '-'}</span>
+                          ) : (
+                            <span>
+                              {username !== '—' && ` · @${username}`}
+                              {phone !== '—' && ` · ${phone}`}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                         {fmtCurrency(order.totalAmount)}
@@ -286,18 +296,18 @@ const AdminDashboard = () => {
                           {cfg.label}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                        {fmtDate(order.createdAt)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => handleDownload(order.id, order.orderNumber, order.orderType === 'SUPPLIER_ORDER')}
-                          disabled={downloadingId === order.id}
-                          className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 disabled:opacity-50 transition-colors"
-                          title="Download Invoice"
-                        >
-                          <Download className="h-3.5 w-3.5" /> {downloadingId === order.id ? 'Wait...' : 'Invoice'}
-                        </button>
+                      <td className="px-4 py-3 sticky right-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors z-10 shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.3)]">
+                        <div className="flex items-center gap-4">
+                          <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap text-xs">{fmtDate(order.createdAt)}</span>
+                          <button
+                            onClick={() => handleDownload(order.id, order.orderNumber, order.orderType === 'SUPPLIER_ORDER')}
+                            disabled={downloadingId === order.id}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 disabled:opacity-50 transition-colors shrink-0"
+                            title="Download Invoice"
+                          >
+                            <Download className="h-3.5 w-3.5" /> {downloadingId === order.id ? 'Wait...' : 'Invoice'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

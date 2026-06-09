@@ -24,8 +24,8 @@ const Login = () => {
   // Redirect already-authenticated users to their dashboard
   if (isAuthenticated) {
     if (role === 'ADMIN') return <Navigate to="/admin" replace />;
-    if (role === 'SUPPLIER') return <Navigate to="/supplier" replace />;
-    return <Navigate to="/dashboard" replace />;
+    if (role === 'SUPPLIER') return <Navigate to="/products" replace />;
+    return <Navigate to="/products" replace />;
   }
 
   const onSubmit = async (data) => {
@@ -38,8 +38,8 @@ const Login = () => {
       showToast(`Welcome back, ${user.name}!`, 'success');
 
       if (user.role === 'ADMIN') navigate('/admin');
-      else if (user.role === 'SUPPLIER') navigate('/supplier');
-      else navigate('/dashboard');
+      else if (user.role === 'SUPPLIER') navigate('/products');
+      else navigate('/products');
     } catch (error) {
       const errMsg = error.response?.data?.error || 'Invalid email or password.';
       dispatch(loginFailure(errMsg));
@@ -110,7 +110,7 @@ const Login = () => {
                     minLength: { value: 6, message: 'Password must be at least 6 characters' }
                   })}
                   placeholder="Enter Password"
-                  className="w-full pl-10 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-500"
+                  className="w-full pl-10 pr-10 py-3 bg-slate-950/40 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white placeholder-slate-500 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                 />
                 <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                 <button

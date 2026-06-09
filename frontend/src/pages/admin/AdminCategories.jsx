@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, X, Tag } from 'lucide-react';
 import api from '../../api/axios';
+import { useToast } from '../../components/common/Toast';
 
 const AdminCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -10,12 +11,13 @@ const AdminCategories = () => {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const { showToast } = useToast();
 
   const fetch = async () => {
     setLoading(true);
     try {
       const res = await api.get('/categories');
-      setCategories(res.data.data || []);
+      setCategories(res.data.categories || res.data.data || []);
     } catch {
       setCategories([
         { id: 1, categoryName: 'Footwear', createdAt: '2026-01-01' },
@@ -35,16 +37,31 @@ const AdminCategories = () => {
   const handleSave = async (e) => {
     e.preventDefault(); setSaving(true);
     try {
-      if (editItem) await api.put(`/categories/${editItem.id}`, { categoryName: name });
-      else await api.post('/categories', { categoryName: name });
+      if (editItem) {
+        await api.put(`/categories/${editItem.id}`, { categoryName: name });
+        showToast('Category updated successfully!', 'success');
+      } else {
+        await api.post('/categories', { categoryName: name });
+        showToast('Category created successfully!', 'success');
+      }
       setShowModal(false); fetch();
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err);
+      showToast(err.response?.data?.error || 'Failed to save category', 'error');
+    }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
-    try { await api.delete(`/categories/${id}`); fetch(); }
-    catch (err) { console.error(err); }
+    try { 
+      await api.delete(`/categories/${id}`); 
+      showToast('Category deleted successfully!', 'success');
+      fetch(); 
+    }
+    catch (err) { 
+      console.error(err);
+      showToast(err.response?.data?.error || 'Failed to delete category', 'error');
+    }
     finally { setDeleteId(null); }
   };
 

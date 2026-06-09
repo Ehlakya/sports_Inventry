@@ -3,7 +3,8 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { 
   LayoutDashboard, FolderTree, Package, Users, Truck, 
-  History, User, ClipboardList, TrendingUp, LogOut, X 
+  History, User, ClipboardList, TrendingUp, LogOut, X,
+  ShoppingBag
 } from 'lucide-react';
 import { logout } from '../../store/authSlice';
 
@@ -19,6 +20,7 @@ const Sidebar = ({ role, isOpen, toggleSidebar }) => {
   // Admin Navigation Config
   const adminLinks = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard className="h-5 w-5" />, end: true },
+    { name: 'Orders', path: '/admin/orders', icon: <ShoppingBag className="h-5 w-5" /> },
     { name: 'Products', path: '/admin/products', icon: <Package className="h-5 w-5" /> },
     { name: 'Categories', path: '/admin/categories', icon: <FolderTree className="h-5 w-5" /> },
     { name: 'Suppliers', path: '/admin/suppliers', icon: <Truck className="h-5 w-5" /> },
@@ -60,12 +62,6 @@ const Sidebar = ({ role, isOpen, toggleSidebar }) => {
           <span className="font-extrabold text-sm tracking-wider uppercase text-slate-800 dark:text-slate-100">
             Navigation Menu
           </span>
-          <button 
-            onClick={toggleSidebar}
-            className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-          >
-            <X className="h-6 w-6" />
-          </button>
         </div>
 
         {/* Console Header for Large Screens */}

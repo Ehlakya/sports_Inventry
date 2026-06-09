@@ -34,6 +34,10 @@ const placeOrder = async (userId, userRole, items) => {
     const itemsToCreate = [];
     const inventoryTransactions = [];
 
+    // Fetch user details for inventory logs
+    const user = await User.findByPk(userId, { transaction: t });
+    const userName = user ? user.name : (orderType === 'CUSTOMER_ORDER' ? 'Customer' : 'Supplier');
+
     // Loop through items to validate and adjust inventory
     for (const item of items) {
       const { productId, size, quantity } = item;
@@ -95,6 +99,8 @@ const placeOrder = async (userId, userRole, items) => {
       const transactionType = orderType === 'CUSTOMER_ORDER' ? 'CUSTOMER_ORDER_OUTFLOW' : 'SUPPLIER_ORDER_OUTFLOW';
       const orderedBy = orderType === 'CUSTOMER_ORDER' ? 'Customer' : 'Supplier';
       const orderAction = orderType === 'CUSTOMER_ORDER' ? 'purchased' : 'ordered';
+      const sizeText = (size && size !== 'N/A') ? ` (Size ${size})` : '';
+
       inventoryTransactions.push({
         productId,
         userId,
@@ -103,7 +109,7 @@ const placeOrder = async (userId, userRole, items) => {
         quantityAfter,
         transactionType,
         orderedBy,
-        notes: `${orderedBy} ${orderAction} ${quantity} ${product.productName}`
+        notes: `${orderedBy} ${userName} ${orderAction} ${quantity} ${product.productName}${sizeText}.`
       });
 
       // Select price based on role

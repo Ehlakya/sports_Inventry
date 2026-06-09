@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, SlidersHorizontal, Package, Grid, RefreshCw } from 'lucide-react';
+import { Search, SlidersHorizontal, Package, Grid, RefreshCw, ShoppingCart } from 'lucide-react';
 import apiClient from '../../api/axios';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../store/cartSlice';
@@ -164,6 +164,7 @@ const SupplierProducts = () => {
       itemsToAdd.push({
         productId: modalProduct.id,
         productName: modalProduct.productName,
+        imageUrl: modalProduct.imageUrl,
         brand: modalProduct.brand,
         size,
         quantity: qty,
@@ -172,11 +173,11 @@ const SupplierProducts = () => {
       });
     });
 
-    if (hasError) return;
+    if (hasError) return false;
 
     if (itemsToAdd.length === 0) {
       showToast('Please enter a quantity for at least one size.', 'error');
-      return;
+      return false;
     }
 
     itemsToAdd.forEach(item => {
@@ -184,6 +185,7 @@ const SupplierProducts = () => {
     });
 
     showToast(`Added ${itemsToAdd.reduce((sum, item) => sum + item.quantity, 0)} items to Bulk Order Cart.`, 'success');
+    return true;
   };
 
   return (
@@ -427,10 +429,10 @@ const SupplierProducts = () => {
                       
                       <button
                         onClick={() => openModal(product)}
-                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-900 text-white hover:bg-blue-800 text-xs font-semibold transition-colors"
-                        title="Bulk Order"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-900 text-white hover:bg-blue-800 text-xs font-semibold transition-colors shadow-sm"
+                        title="Add to Cart"
                       >
-                        <Package className="h-4 w-4" /> Bulk Order
+                        <ShoppingCart className="h-4 w-4" /> Add to Cart
                       </button>
                     </div>
 
@@ -446,79 +448,142 @@ const SupplierProducts = () => {
 
       {/* ADD TO BULK ORDER MODAL */}
       {modalProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
-          <div className="glass-panel rounded-2xl w-full max-w-lg shadow-2xl p-6 bg-white dark:bg-slate-900 flex flex-col max-h-[85vh]">
-            <h3 className="text-lg font-bold mb-1 text-slate-800 dark:text-slate-100">Add to Bulk Order</h3>
-            <p className="text-sm font-semibold mb-4 text-blue-900 dark:text-blue-400">{modalProduct.productName}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="glass-panel rounded-3xl w-full max-w-2xl shadow-2xl bg-white dark:bg-slate-900 overflow-hidden flex flex-col max-h-[90vh]">
             
-            <div className="flex-grow overflow-y-auto pr-1 space-y-4 mb-6">
-              <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Sizes & Stock</label>
+            {/* Header / Product Info */}
+            <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex gap-6 items-start">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
+                <img 
+                  src={modalProduct.imageUrl || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80'} 
+                  alt={modalProduct.productName} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-grow space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400">{modalProduct.brand}</span>
+                    <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 leading-tight">{modalProduct.productName}</h3>
+                  </div>
+                  <button onClick={() => setModalProduct(null)} className="p-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-full transition-colors shrink-0">
+                    <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-3 mt-2">
+                  <div className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <span className="text-[9px] text-slate-400 block uppercase font-bold">Supplier Price</span>
+                    <span className="text-base font-black text-slate-800 dark:text-slate-100">
+                      ₹{parseFloat(modalProduct.supplierPrice || 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <span className="text-[9px] text-slate-400 block uppercase font-bold">Total Available</span>
+                    <span className={`text-base font-black ${modalProduct.availableQuantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                      {modalProduct.availableQuantity} units
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Body / Size & Quantity Selection */}
+            <div className="p-6 overflow-y-auto flex-grow space-y-4 bg-white dark:bg-slate-900">
+              <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Quantities</label>
               
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.keys(modalQuantities).map((size) => {
                   const sizeObj = modalProduct.sizes?.find(s => s.size === size);
                   const maxStock = sizeObj ? sizeObj.stock : modalProduct.availableQuantity;
                   const isOutOfStock = size !== 'N/A' && maxStock === 0;
 
                   return (
-                    <div key={size} className="flex gap-4 items-center justify-between">
-                      {/* Pill Shape on the Left */}
-                      <div className={`flex-shrink-0 w-12 h-12 rounded-full border flex items-center justify-center font-bold text-sm shadow-inner transition-colors ${
-                        isOutOfStock 
-                          ? 'border-red-200 bg-red-50 text-red-400 dark:border-red-950/40 dark:bg-red-950/20 dark:text-red-800/40 line-through' 
-                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300'
-                      }`}>
-                        {size}
-                      </div>
-
-                      {/* Stock Text in the Middle */}
-                      <div className="flex-grow text-center">
-                        <span className={`text-xs font-bold ${isOutOfStock ? 'text-red-500/70 dark:text-red-400/50' : 'text-slate-500 dark:text-slate-400'}`}>
-                          {isOutOfStock ? 'Out of Stock' : `Stock: ${maxStock}`}
+                    <div key={size} className={`flex flex-col gap-2 p-3 rounded-2xl border ${isOutOfStock ? 'border-red-100 bg-red-50 dark:border-red-900/30 dark:bg-red-950/10' : 'border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/30'}`}>
+                      <div className="flex justify-between items-center">
+                        <span className={`font-black text-lg ${isOutOfStock ? 'text-red-400 line-through' : 'text-slate-700 dark:text-slate-300'}`}>
+                          {size === 'N/A' ? 'Standard' : size}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isOutOfStock ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}`}>
+                          {isOutOfStock ? 'Sold Out' : `${maxStock} left`}
                         </span>
                       </div>
-
-                      {/* Quantity Input on the Right */}
-                      <div className="w-36 flex-shrink-0">
-                        <input
-                          type="number"
-                          min="0"
-                          max={maxStock}
-                          placeholder="0"
-                          disabled={isOutOfStock}
-                          value={modalQuantities[size] || ''}
-                          onChange={(e) => handleQuantityChange(size, e.target.value)}
-                          className="w-full px-4 py-3 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all shadow-sm disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-950"
-                        />
-                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        max={maxStock}
+                        placeholder="Qty: 0"
+                        disabled={isOutOfStock}
+                        value={modalQuantities[size] || ''}
+                        onChange={(e) => handleQuantityChange(size, e.target.value)}
+                        className="w-full px-3 py-2 text-center font-bold border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all shadow-sm disabled:opacity-50"
+                      />
                     </div>
                   );
                 })}
               </div>
-
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-3 italic">
-                Leave size blank to skip. For edit, sizes update separately.
-              </p>
             </div>
             
-            <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <button
-                onClick={() => setModalProduct(null)}
-                className="flex-grow py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-              >
-                OK
-              </button>
-              <button
-                onClick={handleAddToCart}
-                className="flex-grow py-3 rounded-xl bg-blue-900 text-white hover:bg-blue-800 text-sm font-semibold shadow-lg shadow-blue-900/20 transition-colors"
-              >
-                Add to Cart
-              </button>
-            </div>
+            {/* Footer / Order Summary */}
+            {(() => {
+              const totalUnits = Object.values(modalQuantities).reduce((acc, qty) => acc + (parseInt(qty) || 0), 0);
+              const subtotal = totalUnits * parseFloat(modalProduct.supplierPrice || 0);
+              const gst = subtotal * 0.12;
+              const grandTotal = subtotal + gst;
+
+              return (
+                <div className="p-6 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex flex-col sm:flex-row justify-between gap-6 mb-6">
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Order Summary</h4>
+                      <p className="text-xs text-slate-500">Review your bulk order quantities before adding to cart.</p>
+                    </div>
+                    
+                    <div className="w-full sm:w-64 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 font-medium">Total Units:</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">{totalUnits} items</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 font-medium">Subtotal:</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500 font-medium">GST (12%):</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">₹{gst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="flex justify-between text-lg pt-2 border-t border-slate-200 dark:border-slate-700 mt-2">
+                        <span className="font-black text-slate-800 dark:text-slate-100">Grand Total:</span>
+                        <span className="font-black text-blue-600 dark:text-blue-400">₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={() => setModalProduct(null)}
+                      className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (handleAddToCart()) {
+                          setModalProduct(null);
+                        }
+                      }}
+                      disabled={totalUnits === 0}
+                      className="flex-1 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-sm font-bold shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                      title="Add to Cart"
+                    >
+                      <ShoppingCart className="w-4 h-4" /> Add to Cart
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
-
     </div>
   );
 };

@@ -94,21 +94,30 @@ const SupplierBulkOrder = () => {
           <div className="space-y-4">
             {cart.map(item => (
               <div key={`${item.productId}-${item.size}`} className="flex items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm">
-                <div className="flex-1 min-w-0 flex flex-col">
-                  <p className="font-bold text-slate-800 dark:text-slate-100 text-base">{item.productName}</p>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                    <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-semibold text-slate-700 dark:text-slate-300">
-                      Brand: {item.brand}
-                    </span>
-                    {item.size !== 'N/A' && (
-                      <span className="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded font-semibold">
-                        Size: {item.size}
-                      </span>
-                    )}
+                <div className="flex-1 min-w-0 flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 border border-slate-200 dark:border-slate-700">
+                    <img 
+                      src={item.imageUrl || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80'} 
+                      alt={item.productName} 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-400 mt-2">
-                    ₹{Number(item.price).toLocaleString('en-IN')} <span className="text-xs text-slate-400 font-normal">/ item</span>
-                  </p>
+                  <div className="flex flex-col">
+                    <p className="font-bold text-slate-800 dark:text-slate-100 text-base">{item.productName}</p>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                      <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-semibold text-slate-700 dark:text-slate-300">
+                        Brand: {item.brand}
+                      </span>
+                      {item.size !== 'N/A' && (
+                        <span className="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded font-semibold">
+                          Size: {item.size}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-400 mt-2">
+                      ₹{Number(item.price).toLocaleString('en-IN')} <span className="text-xs text-slate-400 font-normal">/ item</span>
+                    </p>
+                  </div>
                 </div>
                 
                 <div className="flex flex-col items-end gap-3">

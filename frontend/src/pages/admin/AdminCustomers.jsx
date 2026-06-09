@@ -111,9 +111,12 @@ const AdminCustomers = () => {
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 dark:bg-slate-800/60">
             <tr>
-              {['Customer', 'Username / Email', 'Phone', 'Address', 'Status', 'Orders', 'Joined', 'Actions'].map(h => (
+              {['Customer', 'Username / Email', 'Phone', 'Address', 'Status', 'Orders'].map(h => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
               ))}
+              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.3)]">
+                Joined & Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -126,7 +129,7 @@ const AdminCustomers = () => {
                 </td>
               </tr>
             ) : customers.map(c => (
-              <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+              <tr key={c.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
@@ -157,11 +160,13 @@ const AdminCustomers = () => {
                     <span className="font-semibold text-slate-700 dark:text-slate-300">{c.ordersCount || 0}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{fmtDate(c.createdAt)}</td>
-                <td className="px-4 py-3">
-                  <button onClick={() => handleViewDetails(c.id)} className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-700 dark:text-blue-400 transition-colors">
-                    <Eye className="h-4 w-4" />
-                  </button>
+                <td className="px-4 py-3 sticky right-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors z-10 shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.05)] dark:shadow-[-8px_0_10px_-4px_rgba(0,0,0,0.3)]">
+                  <div className="flex items-center gap-4">
+                    <span className="text-slate-400 text-xs whitespace-nowrap">{fmtDate(c.createdAt)}</span>
+                    <button onClick={() => handleViewDetails(c.id)} className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-400 transition-colors shrink-0" title="View Details">
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
