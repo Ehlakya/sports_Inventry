@@ -35,6 +35,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Root route to prevent 404 on base URL
+app.get('/', (req, res) => {
+  res.status(200).send('Sports Inventory Management System API is running successfully.');
+});
+
 // Register api v1 routes
 app.use('/api/v1', apiRoutes);
 
